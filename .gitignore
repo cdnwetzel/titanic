@@ -1,4 +1,4 @@
-# Kaggle competition data — redistribution prohibited by competition rules
+# Kaggle competition data, redistribution prohibited by competition rules
 data/
 
 # Local environment
@@ -8,9 +8,8 @@ data/
 __pycache__/
 *.pyc
 
-# Experiment artifacts (regenerable; see results.jsonl / runner.log for the audit trail)
-*.npy
+# Aborted run backups only; the canonical run logs and per-fold score
+# arrays in results/ are retained deliberately for cross-machine comparison
 runner.log.run*
-scores_*.npy
 results.jsonl.run*
 catboost_info/

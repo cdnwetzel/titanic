@@ -47,7 +47,14 @@ def gather():
         import psutil
         info["ram_gb"] = round(psutil.virtual_memory().total / (1024 ** 3), 1)
     except Exception:
-        pass
+        try:
+            with open("/proc/meminfo") as f:
+                for line in f:
+                    if line.startswith("MemTotal"):
+                        info["ram_gb"] = round(int(line.split()[1]) / (1024 ** 2), 1)
+                        break
+        except Exception:
+            pass
     try:
         out = subprocess.run(
             ["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader"],

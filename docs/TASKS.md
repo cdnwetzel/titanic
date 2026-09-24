@@ -270,12 +270,17 @@ untuned HGB (the canary that catches library version drift).
 
 1. `python scripts/env_info.py --out results/env_<hostname>.json` on each
    machine; commit the files.
-2. Run `train.py` and the pytest suite on each machine.
-3. Compare the `train.py` CV printout (0.8361 +/- BLAS noise), the pytest
+2. `OMP_NUM_THREADS=8 python scripts/benchmark.py` on each machine; commit
+   the `results/benchmark_<hostname>.json` it writes. The battery fixes the
+   seeds, so scores are comparable to the third decimal and wall times are
+   the hardware signal.
+3. Run `train.py` and the pytest suite on each machine.
+4. Compare the `train.py` CV printout (0.8361 +/- BLAS noise), the pytest
    band test, and per evaluation wall clock from `results/runner.log`
    timestamps.
-4. For a full comparison, run the pipeline and diff `results/results.jsonl`
-   event by event. Gate scores should agree to the third decimal.
+5. For a full comparison, run the pipeline and diff `results/results.jsonl`
+   event by event. Per fold arrays in `results/scores_*.npy` settle any
+   disagreement about a specific gate.
 
 ## 9. History: known issues fixed since the original run
 
@@ -309,5 +314,8 @@ they carried are in the list above.
 | `results/results.jsonl` | every gate decision, machine readable |
 | `results/runner.log` | human readable run log |
 | `results/champion.json` | final spec and tuned parameters |
+| `results/scores_*.npy` | per fold score arrays for every gate |
 | `results/env_*.json` | per machine hardware context |
+| `results/benchmark_*.json` | fixed-seed battery scores and wall times per machine |
+| `results/kaggle_submissions.txt` | recorded leaderboard submissions |
 | `requirements.txt` | pinned environment |

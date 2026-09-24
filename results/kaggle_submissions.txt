@@ -1,0 +1,7 @@
+     ref  fileName        date                        description                                            status                     publicScore  privateScore  
+--------  --------------  --------------------------  -----------------------------------------------------  -------------------------  -----------  ------------  
+56517033  submission.csv  2026-09-24 08:51:41.930000  Final: RF+HGB+LR stack, Optuna-tuned, nested-CV 0.841  SubmissionStatus.COMPLETE  0.75837                    
+56508696  submission.csv  2026-09-24 01:54:01.357000  Soft vote: RF + HGB + LR                               SubmissionStatus.COMPLETE  0.76076                    
+56508642  submission.csv  2026-09-24 01:50:38.903000  HistGradientBoosting, full features                    SubmissionStatus.COMPLETE  0.75358                    
+56508574  submission.csv  2026-09-24 01:45:47.563000  Age imputed by Title x Pclass median                   SubmissionStatus.COMPLETE  0.74641                    
+56508409  submission.csv  2026-09-24 01:34:48.380000  Baseline random forest                                 SubmissionStatus.COMPLETE  0.76555                    

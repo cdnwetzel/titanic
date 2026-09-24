@@ -1,0 +1,23 @@
+{
+  "captured_utc": "2026-09-24T10:47:42.498166+00:00",
+  "hostname": "precision-t5810",
+  "platform": "Linux-6.18.21-gentoo-x86_64-Intel-R-_Xeon-R-_CPU_E5-2699_v4_@_2.20GHz-with-glibc2.42",
+  "python": "3.12.12",
+  "cpu_logical_cores": 44,
+  "cpu_model": "Intel(R) Xeon(R) CPU E5-2699 v4 @ 2.20GHz",
+  "ram_gb": 251.6,
+  "gpus": [
+    "NVIDIA RTX A4500, 20470 MiB",
+    "NVIDIA RTX A4500, 20470 MiB"
+  ],
+  "packages": {
+    "numpy": "2.4.2",
+    "pandas": "2.2.3",
+    "scikit-learn": "not installed",
+    "scipy": "1.17.1",
+    "xgboost": "not installed",
+    "lightgbm": "not installed",
+    "catboost": "not installed",
+    "optuna": "not installed"
+  }
+}

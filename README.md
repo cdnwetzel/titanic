@@ -73,6 +73,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 python scripts/env_info.py --out results/env_$(hostname).json   # record the machine
 .venv/bin/python train.py          # champion: prints CV, writes submission.csv
 .venv/bin/python -m pytest tests   # suite: features, harness, model, smoke
+OMP_NUM_THREADS=8 python scripts/benchmark.py   # cross-machine battery, ~2 min
 ```
 
 Full pipeline (tasks 6 to 14, about 3 h serial):
@@ -96,10 +97,15 @@ requirements, so gate scores should reproduce across machines to within BLAS
 noise (watch the third decimal). To compare hardware properly:
 
 1. Clone, create the venv from `requirements.txt`, download the data.
-2. `python scripts/env_info.py --out results/env_<hostname>.json` on each
-   machine, and commit the files.
-3. Run the quick start above. Compare:
-   - `train.py` CV printout (should match 0.8361 +/- small BLAS noise)
+2. `python scripts/env_info.py --out results/env_<hostname>.json`, then
+   `OMP_NUM_THREADS=8 python scripts/benchmark.py` (about 2 minutes). Commit
+   both artifacts. The benchmark reruns the champion 5-fold CV and the two
+   tuned single-model screens with fixed seeds, recording per fold scores
+   and wall times.
+3. Run the quick start above. Compare across machines:
+   - `results/benchmark_*.json`: scores should match to the third decimal,
+     wall times are the hardware signal
+   - `train.py` CV printout (0.8361 +/- small BLAS noise)
    - `pytest` results (the reference band test guards against version drift)
    - per evaluation wall clock, from the timestamps in `results/runner.log`
 4. For the full comparison, run the pipeline on both machines and diff
@@ -160,4 +166,7 @@ hang proof.
 | `results/results.jsonl` | every gate decision, machine readable |
 | `results/runner.log` | human readable run log |
 | `results/champion.json` | final spec and tuned parameters |
+| `results/scores_*.npy` | per fold score arrays for every gate, the exact comparison evidence |
 | `results/env_*.json` | per machine hardware context |
+| `results/benchmark_*.json` | standardized battery: fixed-seed scores plus wall times per machine |
+| `results/kaggle_submissions.txt` | recorded leaderboard submissions |
