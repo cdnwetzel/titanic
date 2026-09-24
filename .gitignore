@@ -13,3 +13,4 @@ __pycache__/
 runner.log.run*
 results.jsonl.run*
 catboost_info/
+results/validation/

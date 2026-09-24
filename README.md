@@ -50,7 +50,8 @@ titanic/
 │   ├── evaluate.py        CV protocols, fold scoring, paired tests
 │   └── model.py           model zoo, preprocessing, champion stack builder
 ├── pipeline/
-│   └── run_all.py         the gated full pipeline, tasks 6 to 14
+│   ├── run_full.py        the full battery: baseline + tasks 1-5, then 6-14
+│   └── run_all.py         gated pipeline runner (tasks 6 to 14), driven by run_full
 ├── experiments/           standalone levers: screens, stack composition, HPO
 │   └── README.md          what each script is for and future levers
 ├── tests/                 pytest suite (features, harness, model, smoke)
@@ -76,10 +77,17 @@ python scripts/env_info.py --out results/env_$(hostname).json   # record the mac
 OMP_NUM_THREADS=8 python scripts/benchmark.py   # cross-machine battery, ~2 min
 ```
 
-Full pipeline (tasks 6 to 14, about 3 h serial):
+Full battery (baseline plus tasks 1 to 14, about 4 h serial; tasks 15 and
+16 are methodology and manual policy):
 
 ```bash
-OMP_NUM_THREADS=8 python -m pipeline.run_all 2>&1 | tee results/runner.log
+OMP_NUM_THREADS=8 python -m pipeline.run_full 2>&1 | tee results/runner_full.log
+```
+
+Verify the wiring cheaply first (small models, 15-fold CV, about 1 min):
+
+```bash
+python -m pipeline.run_full --smoke
 ```
 
 Experiment levers (see experiments/README.md):
@@ -160,7 +168,8 @@ hang proof.
 | `src/features.py` | feature engineering, data loading |
 | `src/evaluate.py` | CV protocols, `cv_scores`, `paired_test`, seed averaging |
 | `src/model.py` | model zoo, `make_pre`, `build_stack`, tuned parameters |
-| `pipeline/run_all.py` | gated pipeline, tasks 6 to 14 |
+| `pipeline/run_full.py` | full battery: baseline + tasks 1 to 5 reconstructed, then 6 to 14 |
+| `pipeline/run_all.py` | gated pipeline, tasks 6 to 14 (driven by run_full) |
 | `experiments/` | standalone levers for repeat testing |
 | `tests/` | pytest suite |
 | `results/results.jsonl` | every gate decision, machine readable |

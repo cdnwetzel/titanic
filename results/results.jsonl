@@ -68,3 +68,40 @@
 {"t": "04:48:32", "event": "final_spec", "spec": {"members": ["rf", "hgb", "lr"], "avg_seeds": {}, "ticket": false, "farepp": false, "imputer": "median", "target_enc": false, "hygiene": false}}
 {"t": "04:48:32", "event": "final_cv", "mean": 0.8370378507312786}
 {"t": "04:48:32", "event": "all_done"}
+{"t": "07:04:58", "host": "precision-t5810", "event": "task_start", "task": 0}
+{"t": "07:04:59", "host": "precision-t5810", "event": "full_baseline", "task": 0, "mean": 0.8129328562760236, "sem": 0.005543025625857229}
+{"t": "07:04:59", "host": "precision-t5810", "event": "task_start", "task": 1}
+{"t": "07:05:00", "host": "precision-t5810", "event": "full_t1_base", "task": 1, "mean": 0.8118134454836483, "sem": 0.005439154182434314}
+{"t": "07:05:01", "host": "precision-t5810", "event": "full_t1_title", "task": 1, "mean": 0.8099575251605884, "sem": 0.005167175282603337}
+{"t": "07:05:02", "host": "precision-t5810", "event": "full_t1_family", "task": 1, "mean": 0.8077061494361097, "sem": 0.005711563220719354}
+{"t": "07:05:03", "host": "precision-t5810", "event": "full_t1_deck", "task": 1, "mean": 0.8009624840457807, "sem": 0.004838097236342378}
+{"t": "07:05:04", "host": "precision-t5810", "event": "full_t1_famgroup", "task": 1, "mean": 0.8080890506978009, "sem": 0.0068039285082765145}
+{"t": "07:05:06", "host": "precision-t5810", "event": "full_t1_hascabin", "task": 1, "mean": 0.8050844265896681, "sem": 0.004986676974169822}
+{"t": "07:05:07", "host": "precision-t5810", "event": "full_t1_title_family", "task": 1, "mean": 0.8050886113029104, "sem": 0.004747039788991726}
+{"t": "07:05:08", "host": "precision-t5810", "event": "full_t1_title_deck", "task": 1, "mean": 0.8092189232732828, "sem": 0.00500456946619571}
+{"t": "07:05:09", "host": "precision-t5810", "event": "full_t1_all", "task": 1, "mean": 0.8058313979034587, "sem": 0.004402459344167326}
+{"t": "07:05:09", "host": "precision-t5810", "event": "task_done", "task": 1}
+{"t": "07:05:09", "host": "precision-t5810", "event": "task_start", "task": 2}
+{"t": "07:05:10", "host": "precision-t5810", "event": "full_t2_by_title", "task": 2, "mean": 0.8140564517816418, "sem": 0.004982526205264948}
+{"t": "07:05:10", "host": "precision-t5810", "event": "gate_result", "task": 2, "variant": "by_title", "diff": 0.0011235955056181357, "p": 0.8165072408901727, "decision": false}
+{"t": "07:05:11", "host": "precision-t5810", "event": "full_t2_by_sex_pclass", "task": 2, "mean": 0.8140857447743393, "sem": 0.0038901403563116423}
+{"t": "07:05:11", "host": "precision-t5810", "event": "gate_result", "task": 2, "variant": "by_sex_pclass", "diff": 0.0011528884983156296, "p": 0.8509951810720674, "decision": false}
+{"t": "07:05:13", "host": "precision-t5810", "event": "full_t2_by_title_pclass", "task": 2, "mean": 0.8099617098738309, "sem": 0.004392342478199894}
+{"t": "07:05:13", "host": "precision-t5810", "event": "gate_result", "task": 2, "variant": "by_title_pclass", "diff": -0.002971146402192759, "p": 0.6027628859588837, "decision": false}
+{"t": "07:05:13", "host": "precision-t5810", "event": "task_done", "task": 2}
+{"t": "07:05:13", "host": "precision-t5810", "event": "task_start", "task": 3}
+{"t": "07:05:15", "host": "precision-t5810", "event": "full_t3_default_base", "task": 3, "mean": 0.8309061996526689, "sem": 0.004714958088927181}
+{"t": "07:05:17", "host": "precision-t5810", "event": "full_t3_default_full", "task": 3, "mean": 0.8282593685267716, "sem": 0.004216714831500298}
+{"t": "07:05:19", "host": "precision-t5810", "event": "full_t3_tuned_full", "task": 3, "mean": 0.821534534346034, "sem": 0.004583659003822322}
+{"t": "07:05:19", "host": "precision-t5810", "event": "task_done", "task": 3}
+{"t": "07:05:19", "host": "precision-t5810", "event": "task_start", "task": 4}
+{"t": "07:05:21", "host": "precision-t5810", "event": "full_t4_rf_hgb", "task": 4, "mean": 0.8290272634067751, "sem": 0.004068502164142854}
+{"t": "07:05:24", "host": "precision-t5810", "event": "full_t4_rf_hgb_w12", "task": 4, "mean": 0.8320172410185592, "sem": 0.004166363285692116}
+{"t": "07:05:27", "host": "precision-t5810", "event": "full_t4_rf_hgb_lr", "task": 4, "mean": 0.8338773460548616, "sem": 0.004333119518324354}
+{"t": "07:05:29", "host": "precision-t5810", "event": "full_t4_rf_hgb_lr_w121", "task": 4, "mean": 0.8357500052308916, "sem": 0.0045985073586366524}
+{"t": "07:05:29", "host": "precision-t5810", "event": "task_done", "task": 4}
+{"t": "07:05:29", "host": "precision-t5810", "event": "task_start", "task": 5}
+{"t": "07:05:44", "host": "precision-t5810", "event": "full_t5_no_passthrough", "task": 5, "mean": 0.835754189944134, "sem": 0.004467247733698233}
+{"t": "07:05:58", "host": "precision-t5810", "event": "full_t5_passthrough", "task": 5, "mean": 0.8323834034272802, "sem": 0.005916607988965168}
+{"t": "07:05:58", "host": "precision-t5810", "event": "task_done", "task": 5}
+{"t": "07:05:58", "host": "precision-t5810", "event": "task_start", "task": 6}

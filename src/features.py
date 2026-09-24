@@ -7,6 +7,7 @@ train and test identifiers only, never from the target.
 
 import numpy as np
 import pandas as pd
+from sklearn.base import BaseEstimator, TransformerMixin
 
 BASE_NUM = ["Pclass", "Age", "SibSp", "Parch", "Fare", "FamilySize", "IsAlone"]
 BASE_CAT = ["Sex", "Embarked", "Title", "Deck"]
@@ -58,3 +59,27 @@ def load_data(ticket=False, fare_per_person=False, hygiene=False):
             df["FarePerPerson"] = df["Fare"] / df["TicketGroupSize"]
 
     return train, test
+
+
+class GroupMedianImputer(BaseEstimator, TransformerMixin):
+    """Impute a column with the median computed per group, falling back to
+    the global median (task 2). Must sit inside the pipeline so group
+    medians are computed on each training fold only."""
+
+    def __init__(self, column, group_by):
+        self.column = column
+        self.group_by = group_by
+
+    def _keys(self):
+        return [self.group_by] if isinstance(self.group_by, str) else list(self.group_by)
+
+    def fit(self, X, y=None):
+        self.fallback_ = float(X[self.column].median())
+        self.group_medians_ = X.groupby(self._keys())[self.column].median()
+        return self
+
+    def transform(self, X):
+        X = X.copy()
+        med = pd.Series(X.set_index(self._keys()).index.map(self.group_medians_), index=X.index)
+        X[self.column] = X[self.column].fillna(med).fillna(self.fallback_)
+        return X

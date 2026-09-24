@@ -243,18 +243,29 @@ sample.
 - Estimates: CV_MAIN 0.8370 +/- 0.0036; nested CV 0.8406 +/- 0.0073.
 - `results/champion.json` holds the exact spec and tuned parameters.
 
-## 6. Reproducing the full pipeline
+## 6. Reproducing the full battery
 
 ```bash
-OMP_NUM_THREADS=8 python -m pipeline.run_all 2>&1 | tee results/runner.log
+OMP_NUM_THREADS=8 python -m pipeline.run_full 2>&1 | tee results/runner_full.log
 ```
 
-`pipeline/run_all.py` runs tasks 6 to 14 sequentially with the gates above
-(about 3 h serial). Events stream to `results/results.jsonl` as they happen;
-a killed run loses no completed decisions.
+`pipeline/run_full.py` runs everything in order: the baseline and tasks 1
+to 5 as reconstructed phases (each log line carries an "expect ~X"
+annotation from the original run), then tasks 6 to 14 through the gated
+pipeline in `pipeline/run_all.py` (about 4 h serial total). Tasks 15 and 16
+are methodology and manual policy; they have nothing to execute. Verify the
+wiring cheaply first:
 
-**Runtime map (serial, OMP=8):** champion baseline ~6 min; each 50-fold
-stack gate ~6 to 13 min; HPO ~35 min; nested CV ~20 min.
+```bash
+python -m pipeline.run_full --smoke   # small models, 15-fold CV, ~1 min
+```
+
+Events stream to `results/results.jsonl` with host tags as they happen; a
+killed run loses no completed decisions.
+
+**Runtime map (serial, OMP=8):** phases 0 to 5 about 45 min (task 4 and 5
+ensemble rows dominate); champion baseline ~6 min; each 50-fold stack gate
+~6 to 13 min; HPO ~35 min; nested CV ~20 min.
 
 ## 7. Verifying an environment
 
@@ -308,7 +319,8 @@ they carried are in the list above.
 | `src/features.py` | feature engineering, data loading |
 | `src/evaluate.py` | CV protocols, `cv_scores`, `paired_test`, seed averaging |
 | `src/model.py` | model zoo, `make_pre`, `build_stack`, tuned parameters |
-| `pipeline/run_all.py` | gated pipeline, tasks 6 to 14 |
+| `pipeline/run_full.py` | full battery: baseline + tasks 1 to 5 reconstructed, then 6 to 14 |
+| `pipeline/run_all.py` | gated pipeline, tasks 6 to 14 (driven by run_full) |
 | `experiments/` | standalone levers for repeat testing |
 | `tests/` | pytest suite |
 | `results/results.jsonl` | every gate decision, machine readable |

@@ -72,8 +72,12 @@ def make_pre(num, cat, imputer="median", target_enc=False):
     from sklearn.experimental import enable_iterative_imputer  # noqa: F401
     from sklearn.impute import IterativeImputer
 
-    imp = IterativeImputer(random_state=42) if imputer == "iterative" \
-        else SimpleImputer(strategy="median")
+    if imputer == "iterative":
+        imp = IterativeImputer(random_state=42)
+    elif imputer == "passthrough":
+        imp = "passthrough"  # for learners that handle NaN natively (task 3)
+    else:
+        imp = SimpleImputer(strategy="median")
     branches = [
         ("num", Pipeline([("impute", imp), ("scale", StandardScaler())]), num),
         ("cat", Pipeline([("impute", SimpleImputer(strategy="most_frequent")),
@@ -108,7 +112,7 @@ def columns(spec=None):
     return num, cat
 
 
-def build_stack(spec=None, tuned=None):
+def build_stack(spec=None, tuned=None, passthrough=True):
     spec = spec or DEFAULT_SPEC
     num, cat = columns(spec)
     pre = make_pre(num, cat, imputer=spec["imputer"], target_enc=spec["target_enc"])
@@ -125,5 +129,5 @@ def build_stack(spec=None, tuned=None):
         ("clf", StackingClassifier(
             estimators=estimators,
             final_estimator=LogisticRegression(max_iter=1000),
-            cv=5, stack_method="predict_proba", passthrough=True)),
+            cv=5, stack_method="predict_proba", passthrough=passthrough)),
     ])

@@ -59,3 +59,36 @@ def test_fare_per_person_requires_ticket():
 def test_hygiene_zeroes_fares():
     train, _ = load_data(hygiene=True)
     assert (train["Fare"].dropna() > 0).all()
+
+
+def test_group_median_imputer():
+    import numpy as np
+    import pandas as pd
+    from sklearn.compose import ColumnTransformer
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.impute import SimpleImputer
+    from sklearn.pipeline import Pipeline
+    from sklearn.preprocessing import OneHotEncoder
+
+    from src.evaluate import cv_scores
+    from src.features import add_base_features, GroupMedianImputer
+
+    train = add_base_features(pd.read_csv("data/train.csv"))
+    num, cat = ["Pclass", "Age", "SibSp", "Parch", "Fare"], ["Sex", "Embarked"]
+    pre = ColumnTransformer([
+        ("num", SimpleImputer(strategy="median"), num),
+        ("cat", Pipeline([("impute", SimpleImputer(strategy="most_frequent")),
+                          ("onehot", OneHotEncoder(handle_unknown="ignore"))]), cat),
+    ])
+    pipe = Pipeline([
+        ("age_impute", GroupMedianImputer("Age", ["Title", "Pclass"])),
+        ("preprocess", pre),
+        ("clf", RandomForestClassifier(n_estimators=20, random_state=42)),
+    ])
+    # fold-safe: no error, deterministic, and group medians came from train folds
+    s1 = cv_scores(pipe, train[num + cat + ["Title"]], train["Survived"], mode="screen")
+    assert s1.mean() > 0.6
+    # deterministic across identical runs
+    s2 = cv_scores(pipe, train[num + cat + ["Title"]], train["Survived"], mode="screen")
+    import numpy as np
+    np.testing.assert_array_equal(s1, s2)
