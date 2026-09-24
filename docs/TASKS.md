@@ -265,6 +265,15 @@ killed run loses no completed decisions.
 ensemble rows dominate); champion baseline ~6 min; each 50-fold stack gate
 ~6 to 13 min; HPO ~35 min; nested CV ~20 min.
 
+**Parity note:** the shipped tuned parameters (`CHAMPION_TUNED`) are fixed
+in `src/model.py`, and every full run re-evaluates them as the
+`gate_tuned_reference` event (expect 0.8370). The re-search itself
+(`gate_tuned`) may land on different params than the original session,
+because the original search ran unseeded and all reruns use
+`TPESampler(seed=42)`; both are valid optima of the same space. Judge
+cross-run parity on the reference events and the non-search gates, which
+reproduce exactly.
+
 ## 7. Verifying an environment
 
 ```bash

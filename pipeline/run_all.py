@@ -42,6 +42,7 @@ from src.evaluate import (
 )
 from src.features import BASE_CAT, BASE_NUM, load_data
 from src.model import (
+    CHAMPION_TUNED,
     HGB_BASE,
     RF_BASE,
     TUNED,
@@ -230,6 +231,15 @@ def main():
             TUNED[name] = dict(study.best_params)
 
     gate(7, "champion with tuned HGB/RF", event="gate_tuned")
+
+    # Parity anchor: the shipped CHAMPION_TUNED params must reproduce their
+    # recorded score in every rerun, regardless of what the re-search finds
+    # (the original search was unseeded; reruns use TPESampler(seed=42) and
+    # may land on a different valid optimum).
+    Xa, ya = load_xy()
+    full_eval(build_stack(spec=SPEC, tuned=CHAMPION_TUNED), Xa, ya,
+              "gate_tuned_reference", 7,
+              "Champion with shipped CHAMPION_TUNED params (reference, expect ~0.8370)")
     log("TASK 7 done.", event="task_done", task=7)
 
     # ================================================================ TASK 8
