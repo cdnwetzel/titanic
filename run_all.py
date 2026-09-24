@@ -284,9 +284,11 @@ def make_objective(model_name, Xd, yd, num_cols, cat_cols):
     return objective
 
 
-study_hgb = optuna.create_study(direction="maximize")
+study_hgb = optuna.create_study(direction="maximize",
+                                sampler=optuna.samplers.TPESampler(seed=42))
 study_hgb.optimize(make_objective("hgb", X, y, num, cat), n_trials=60)
-study_rf = optuna.create_study(direction="maximize")
+study_rf = optuna.create_study(direction="maximize",
+                               sampler=optuna.samplers.TPESampler(seed=42))
 study_rf.optimize(make_objective("rf", X, y, num, cat), n_trials=40)
 log(f"HPO best screen: HGB {study_hgb.best_value:.4f} {study_hgb.best_params} | "
     f"RF {study_rf.best_value:.4f} {study_rf.best_params}",
@@ -341,7 +343,10 @@ gate(9, "+TicketGroupSize, TicketPrefix", spec_override={"ticket": True}, event=
 log("TASK 9 done.", event="task_done", task=9)
 
 log("TASK 10: fare per person", event="task_start", task=10)
-gate(10, "+FarePerPerson", spec_override={"farepp": True}, event="gate_farepp")
+if SPEC["ticket"]:
+    gate(10, "+FarePerPerson", spec_override={"farepp": True}, event="gate_farepp")
+else:
+    log("  skipped: requires TicketGroupSize (task 9 rejected)", event="skip", task=10)
 log("TASK 10 done.", event="task_done", task=10)
 
 log("TASK 11: IterativeImputer for numerics", event="task_start", task=11)
@@ -366,11 +371,13 @@ X, y = load_xy()  # reload: features may have changed in tasks 9-13
 num, cat = columns()
 OUTER = RepeatedStratifiedKFold(n_splits=5, n_repeats=2, random_state=7)
 outer_scores = []
+TUNED_SNAPSHOT = {k: dict(v) for k, v in TUNED.items()}  # restore after nested loop
 for k, (tr, te) in enumerate(OUTER.split(X, y)):
     X_tr, X_te = X.iloc[tr], X.iloc[te]
     y_tr, y_te = y.iloc[tr], y.iloc[te]
 
-    inner = optuna.create_study(direction="maximize")
+    inner = optuna.create_study(direction="maximize",
+                                sampler=optuna.samplers.TPESampler(seed=42))
     inner.optimize(make_objective("hgb", X_tr, y_tr, num, cat), n_trials=15)
     TUNED["hgb"] = dict(inner.best_params)
     model = build_stack()
@@ -378,6 +385,8 @@ for k, (tr, te) in enumerate(OUTER.split(X, y)):
     outer_scores.append(model.score(X_te, y_te))
     log(f"  outer fold {k}: {outer_scores[-1]:.4f}", event="nested_fold", task=14, fold=k,
         score=float(outer_scores[-1]))
+TUNED.clear()
+TUNED.update(TUNED_SNAPSHOT)  # nested-search params must not leak into champion.json
 outer_scores = np.array(outer_scores)
 log(f"NESTED CV: {outer_scores.mean():.4f} (+/- {outer_scores.std()/np.sqrt(len(outer_scores)):.4f} SEM)",
     event="nested_cv", task=14, mean=float(outer_scores.mean()),

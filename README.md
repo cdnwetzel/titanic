@@ -179,6 +179,9 @@ OMP_NUM_THREADS=8 .venv/bin/python -u run_all.py 2>&1 | tee runner.log
 
 ## Files
 
+- `LEARNING_JOURNEY.md` — narrative writeup of the full arc, for peers
+- `TASKS.md` — complete task-by-task reproducibility spec (baseline + all 16
+  tasks: exact configs, search spaces, gate criteria, results, commands)
 - `train.py` — final champion: engineered features → median impute + scale +
   one-hot → stacking ensemble (tuned RF/HGB + LR, LR meta, passthrough)
 - `eda.py` — data overview: shapes, missing values, survival rates
