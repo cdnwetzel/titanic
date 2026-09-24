@@ -1,0 +1,22 @@
+{
+  "captured_utc": "2026-09-24T15:28:37.540990+00:00",
+  "hostname": "asrock-b550",
+  "platform": "Linux-6.18.21-gentoo-x86_64-AMD_Ryzen_9_5950X_16-Core_Processor-with-glibc2.42",
+  "python": "3.12.13",
+  "cpu_logical_cores": 32,
+  "cpu_model": "AMD Ryzen 9 5950X 16-Core Processor",
+  "ram_gb": 62.7,
+  "gpus": [
+    "NVIDIA GeForce RTX 5060 Ti, 16311 MiB"
+  ],
+  "packages": {
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "scikit-learn": "not installed",
+    "scipy": "1.18.1",
+    "xgboost": "3.4.1",
+    "lightgbm": "4.7.0",
+    "catboost": "1.2.10",
+    "optuna": "5.0.0"
+  }
+}
