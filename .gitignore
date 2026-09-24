@@ -1,0 +1,16 @@
+# Kaggle competition data — redistribution prohibited by competition rules
+data/
+
+# Local environment
+.venv/
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Experiment artifacts (regenerable; see results.jsonl / runner.log for the audit trail)
+*.npy
+runner.log.run*
+scores_*.npy
+results.jsonl.run*
+catboost_info/

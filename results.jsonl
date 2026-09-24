@@ -1,0 +1,70 @@
+{"t": "00:11:58", "event": "task_start", "task": 6}
+{"t": "00:18:22", "event": "champion_baseline", "task": 6, "mean": 0.836471659029565, "sem": 0.003485656003481404}
+{"t": "00:21:34", "event": "screen", "task": 6, "mean": 0.8370221580566192}
+{"t": "00:25:05", "event": "screen", "task": 6, "member": "xgb", "diff": 0.001790220325152081, "p": 0.24706433411625084}
+{"t": "00:25:05", "event": "retest", "task": 6, "member": "xgb"}
+{"t": "00:32:06", "event": "retest", "task": 6, "mean": 0.8386020965413346, "sem": 0.0032023731956495154}
+{"t": "00:32:06", "event": "gate_result", "task": 6, "diff": 0.002130437511769556, "p": 0.0711528539964751, "decision": false}
+{"t": "00:41:19", "event": "screen", "task": 6, "member": "cat", "diff": 0.0020124285983303958, "p": 0.24220169832125224}
+{"t": "00:41:19", "event": "retest", "task": 6, "member": "cat"}
+{"t": "00:53:29", "event": "retest", "task": 6, "mean": 0.8388243048145126, "sem": 0.0032266462863165058}
+{"t": "00:53:29", "event": "gate_result", "task": 6, "diff": 0.002352645784947649, "p": 0.08803564316914506, "decision": false}
+{"t": "01:02:24", "event": "screen", "task": 6, "member": "mlp", "diff": -0.001571778293892545, "p": 0.24460888208818377}
+{"t": "01:02:24", "event": "screen_reject", "task": 6, "member": "mlp"}
+{"t": "01:05:45", "event": "screen", "task": 6, "member": "svc", "diff": -0.0013495700207144523, "p": 0.20657233409265774}
+{"t": "01:05:45", "event": "screen_reject", "task": 6, "member": "svc"}
+{"t": "01:09:41", "event": "screen", "task": 6, "member": "lgbm", "diff": 0.001339526708932226, "p": 0.32905934203640463}
+{"t": "01:09:41", "event": "screen_reject", "task": 6, "member": "lgbm"}
+{"t": "01:09:41", "event": "task_done", "task": 6}
+{"t": "01:09:41", "event": "task_start", "task": 7}
+{"t": "01:45:55", "event": "hpo_best", "task": 7, "hgb": {"learning_rate": 0.02220063792187545, "max_iter": 1165, "max_leaf_nodes": 8, "min_samples_leaf": 44, "l2_regularization": 4.0175271118619635, "max_bins": 77}, "rf": {"n_estimators": 661, "max_depth": 15, "min_samples_leaf": 3, "max_features": 0.44766588900099735}}
+{"t": "01:47:32", "event": "fresh_validation", "task": 7, "member": "hgb", "diff": 0.014371351453141612, "p": 1.6313973417203438e-05, "decision": true}
+{"t": "01:49:21", "event": "fresh_validation", "task": 7, "member": "rf", "diff": 0.02200112987257552, "p": 6.799355837420297e-13, "decision": true}
+{"t": "01:51:41", "event": "task_start", "task": 7}
+{"t": "02:04:46", "event": "gate_tuned", "task": 7, "mean": 0.8370378507312786, "sem": 0.0035988014594333668}
+{"t": "02:04:46", "event": "gate_result", "task": 7, "diff": 0.0005661917017135698, "p": 0.7358157197781279, "decision": false}
+{"t": "02:04:46", "event": "task_done", "task": 7}
+{"t": "02:04:46", "event": "task_start", "task": 8}
+{"t": "02:11:17", "event": "screen", "task": 8, "mean": 0.836799949783441}
+{"t": "02:33:17", "event": "screen", "task": 8, "member": "rf", "diff": 0.0, "p": 0.9999999999999946}
+{"t": "02:33:17", "event": "screen_reject", "task": 8, "member": "rf"}
+{"t": "02:50:18", "event": "screen", "task": 8, "member": "hgb", "diff": 0.0, "p": NaN}
+{"t": "02:50:18", "event": "screen_reject", "task": 8, "member": "hgb"}
+{"t": "02:50:18", "event": "task_done", "task": 8}
+{"t": "02:50:18", "event": "task_start", "task": 9}
+{"t": "03:04:42", "event": "gate_ticket", "task": 9, "mean": 0.8345678237398784, "sem": 0.0035437198888900244}
+{"t": "03:04:42", "event": "gate_result", "task": 9, "diff": -0.0019038352896866284, "p": 0.35922244656135516, "decision": false}
+{"t": "03:04:42", "event": "task_done", "task": 9}
+{"t": "03:04:42", "event": "task_start", "task": 10}
+{"t": "03:06:17", "event": "task_start", "task": 0}
+{"t": "03:19:30", "event": "champion_baseline", "task": 0, "mean": 0.8370378507312786, "sem": 0.0035988014594333668}
+{"t": "03:19:30", "event": "task_start", "task": 6}
+{"t": "03:39:15", "event": "posthoc_joint", "task": 6, "mean": 0.8395034837737745, "sem": 0.003208819549561131}
+{"t": "03:39:15", "event": "gate_result", "task": 6, "diff": 0.0024656330424959183, "p": 0.09420863092927612, "decision": false}
+{"t": "03:39:15", "event": "task_done", "task": 6}
+{"t": "03:39:15", "event": "skip", "task": 10}
+{"t": "03:39:15", "event": "skip", "task": 12}
+{"t": "03:39:15", "event": "task_start", "task": 11}
+{"t": "03:52:22", "event": "gate_iterimp", "task": 11, "mean": 0.8346839495323585, "sem": 0.0032705389649175555}
+{"t": "03:52:22", "event": "gate_result", "task": 11, "diff": -0.002353901198920094, "p": 0.07285357551019897, "decision": false}
+{"t": "03:52:22", "event": "task_done", "task": 11}
+{"t": "03:52:22", "event": "task_start", "task": 13}
+{"t": "04:05:28", "event": "gate_hygiene", "task": 13, "mean": 0.8381583077019648, "sem": 0.0034517349773342514}
+{"t": "04:05:28", "event": "gate_result", "task": 13, "diff": 0.00112045697068619, "p": 0.20793271432505916, "decision": false}
+{"t": "04:05:28", "event": "task_done", "task": 13}
+{"t": "04:05:28", "event": "task_start", "task": 14}
+{"t": "04:10:40", "event": "nested_fold", "task": 14, "fold": 0, "score": 0.8603351955307262}
+{"t": "04:15:00", "event": "nested_fold", "task": 14, "fold": 1, "score": 0.8258426966292135}
+{"t": "04:18:47", "event": "nested_fold", "task": 14, "fold": 2, "score": 0.8033707865168539}
+{"t": "04:22:35", "event": "nested_fold", "task": 14, "fold": 3, "score": 0.8595505617977528}
+{"t": "04:26:48", "event": "nested_fold", "task": 14, "fold": 4, "score": 0.848314606741573}
+{"t": "04:31:58", "event": "nested_fold", "task": 14, "fold": 5, "score": 0.8379888268156425}
+{"t": "04:35:57", "event": "nested_fold", "task": 14, "fold": 6, "score": 0.8764044943820225}
+{"t": "04:40:10", "event": "nested_fold", "task": 14, "fold": 7, "score": 0.8089887640449438}
+{"t": "04:44:47", "event": "nested_fold", "task": 14, "fold": 8, "score": 0.8258426966292135}
+{"t": "04:48:32", "event": "nested_fold", "task": 14, "fold": 9, "score": 0.8595505617977528}
+{"t": "04:48:32", "event": "nested_cv", "task": 14, "mean": 0.8406189190885694, "sem": 0.007264198324302993}
+{"t": "04:48:32", "event": "task_done", "task": 14}
+{"t": "04:48:32", "event": "final_spec", "spec": {"members": ["rf", "hgb", "lr"], "avg_seeds": {}, "ticket": false, "farepp": false, "imputer": "median", "target_enc": false, "hygiene": false}}
+{"t": "04:48:32", "event": "final_cv", "mean": 0.8370378507312786}
+{"t": "04:48:32", "event": "all_done"}

@@ -1,0 +1,32 @@
+{
+  "spec": {
+    "members": [
+      "rf",
+      "hgb",
+      "lr"
+    ],
+    "avg_seeds": {},
+    "ticket": false,
+    "farepp": false,
+    "imputer": "median",
+    "target_enc": false,
+    "hygiene": false
+  },
+  "tuned": {
+    "hgb": {
+      "learning_rate": 0.05143828405076928,
+      "max_iter": 440,
+      "max_leaf_nodes": 62,
+      "min_samples_leaf": 48,
+      "l2_regularization": 5.727904470799623,
+      "max_bins": 235
+    },
+    "rf": {
+      "n_estimators": 661,
+      "max_depth": 15,
+      "min_samples_leaf": 3,
+      "max_features": 0.44766588900099735
+    }
+  },
+  "cv_mean": 0.8370378507312786
+}

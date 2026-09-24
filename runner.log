@@ -1,0 +1,125 @@
+[00:11:58] TASK 6: greedy stack composition (25-fold screen -> 50-fold retest)
+[00:18:22] Champion stack RF+HGB+LR (50-fold): 0.8365 (50 folds)
+[00:21:34] Champion (25-fold screen): 0.8370
+[00:25:05]   +xgb: 0.8388 (25-fold) diff=+0.0018 p=0.247
+[00:25:05]   +xgb borderline -> 50-fold retest
+[00:32:06] +xgb (retest): 0.8386 (50 folds)
+[00:32:06]   gate: diff=+0.0021 t=1.84 p=0.0712 -> reject
+[00:41:19]   +cat: 0.8390 (25-fold) diff=+0.0020 p=0.242
+[00:41:19]   +cat borderline -> 50-fold retest
+[00:53:29] +cat (retest): 0.8388 (50 folds)
+[00:53:29]   gate: diff=+0.0024 t=1.74 p=0.0880 -> reject
+[01:02:24]   +mlp: 0.8355 (25-fold) diff=-0.0016 p=0.245
+[01:02:24]   +mlp rejected at screen
+[01:05:45]   +svc: 0.8357 (25-fold) diff=-0.0013 p=0.207
+[01:05:45]   +svc rejected at screen
+[01:09:41]   +lgbm: 0.8384 (25-fold) diff=+0.0013 p=0.329
+[01:09:41]   +lgbm rejected at screen
+[01:09:41] TASK 6 done. members=['rf', 'hgb', 'lr']
+[01:09:41] TASK 7: Optuna HPO for HGB and RF (screen objective, fresh-CV validation)
+[01:45:55] HPO best screen: HGB 0.8358 {'learning_rate': 0.02220063792187545, 'max_iter': 1165, 'max_leaf_nodes': 8, 'min_samples_leaf': 44, 'l2_regularization': 4.0175271118619635, 'max_bins': 77} | RF 0.8361 {'n_estimators': 661, 'max_depth': 15, 'min_samples_leaf': 3, 'max_features': 0.44766588900099735}
+[01:47:32] FRESH 50-fold hgb: untuned 0.8176 tuned 0.8320 diff=+0.0144 p=0.0000 -> ACCEPT
+[01:49:21] FRESH 50-fold rf: untuned 0.8085 tuned 0.8305 diff=+0.0220 p=0.0000 -> ACCEPT
+Traceback (most recent call last):
+  File "/home/chris/ai/kaggle/titanic/run_all.py", line 314, in <module>
+    gate(7, "champion with tuned HGB/RF", event="gate_tuned")
+  File "/home/chris/ai/kaggle/titanic/run_all.py", line 207, in gate
+    scores = with_spec(spec_override or {}, build)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chris/ai/kaggle/titanic/run_all.py", line 183, in with_spec
+    return fn()
+           ^^^^
+  File "/home/chris/ai/kaggle/titanic/run_all.py", line 205, in build
+    return full_eval(build_stack(), X, y, event, task, label)
+                     ^^^^^^^^^^^^^
+  File "/home/chris/ai/kaggle/titanic/run_all.py", line 160, in build_stack
+    est = make_member(name, 42)
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chris/ai/kaggle/titanic/run_all.py", line 83, in make_member
+    return RandomForestClassifier(random_state=seed, **RF_BASE, **TUNED["rf"])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: sklearn.ensemble._forest.RandomForestClassifier() got multiple values for keyword argument 'n_estimators'
+[01:51:41] TASK 7 (resume): champion with tuned HGB/RF
+[02:04:46] champion with tuned HGB/RF: 0.8370 (50 folds)
+[02:04:46]   gate: diff=+0.0006 t=0.34 p=0.7358 -> reject
+[02:04:46] TASK 7 done.
+[02:04:46] TASK 8: seed averaging (5 seeds, staged)
+[02:11:17] Champion refresh (25-fold): 0.8368
+[02:33:17]   seed-avg x5 rf: 0.8368 (25-fold) diff=+0.0000 p=1.000
+[02:33:17]   seed-avg rf rejected at screen
+[02:50:18]   seed-avg x5 hgb: 0.8368 (25-fold) diff=+0.0000 p=nan
+[02:50:18]   seed-avg hgb rejected at screen
+[02:50:18] TASK 8 done.
+[02:50:18] TASK 9: ticket group features
+[03:04:42] +TicketGroupSize, TicketPrefix: 0.8346 (50 folds)
+[03:04:42]   gate: diff=-0.0019 t=-0.93 p=0.3592 -> reject
+[03:04:42] TASK 9 done.
+[03:04:42] TASK 10: fare per person
+Traceback (most recent call last):
+  File "/home/chris/ai/kaggle/titanic/.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3641, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 168, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 197, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7668, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7676, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'TicketGroupSize'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/chris/ai/kaggle/titanic/run_resume.py", line 240, in <module>
+    gate(10, "+FarePerPerson", spec_override={"farepp": True}, event="gate_farepp")
+  File "/home/chris/ai/kaggle/titanic/run_resume.py", line 197, in gate
+    scores = with_spec(spec_override or {}, build)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chris/ai/kaggle/titanic/run_resume.py", line 178, in with_spec
+    return fn()
+           ^^^^
+  File "/home/chris/ai/kaggle/titanic/run_resume.py", line 195, in build
+    X, y = load_xy()
+           ^^^^^^^^^
+  File "/home/chris/ai/kaggle/titanic/run_resume.py", line 168, in load_xy
+    train, _ = load_data(ticket=spec["ticket"], fare_per_person=spec["farepp"],
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chris/ai/kaggle/titanic/exputil.py", line 68, in load_data
+    df["FarePerPerson"] = df["Fare"] / df["TicketGroupSize"]
+                                       ~~^^^^^^^^^^^^^^^^^^^
+  File "/home/chris/ai/kaggle/titanic/.venv/lib/python3.12/site-packages/pandas/core/frame.py", line 4378, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/chris/ai/kaggle/titanic/.venv/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3648, in get_loc
+    raise KeyError(key) from err
+KeyError: 'TicketGroupSize'
+[03:06:17] FINISH RUN: establishing champion baseline (tuned-member stack)
+[03:19:30] Champion stack RF+HGB+LR tuned (50-fold): 0.8370 (50 folds)
+[03:19:30] TASK 6 post-hoc: +xgb AND +cat jointly (both singles were positive-direction)
+[03:39:15] +xgb+cat joint: 0.8395 (50 folds)
+[03:39:15]   gate: diff=+0.0025 t=1.71 p=0.0942 -> reject
+[03:39:15] TASK 6 post-hoc done.
+[03:39:15] TASK 10 skipped: requires TicketGroupSize (task 9 rejected)
+[03:39:15] TASK 12 skipped: requires ticket features (task 9 rejected)
+[03:39:15] TASK 11: IterativeImputer for numerics
+[03:52:22] iterative imputation: 0.8347 (50 folds)
+[03:52:22]   gate: diff=-0.0024 t=-1.83 p=0.0729 -> reject
+[03:52:22] TASK 11 done.
+[03:52:22] TASK 13: hygiene (Fare<=0 -> NaN)
+[04:05:28] hygiene fares: 0.8382 (50 folds)
+[04:05:28]   gate: diff=+0.0011 t=1.28 p=0.2079 -> reject
+[04:05:28] TASK 13 done.
+[04:05:28] TASK 14: nested CV with inner HPO (15 trials, seeded sampler)
+[04:10:40]   outer fold 0: 0.8603
+[04:15:00]   outer fold 1: 0.8258
+[04:18:47]   outer fold 2: 0.8034
+[04:22:35]   outer fold 3: 0.8596
+[04:26:48]   outer fold 4: 0.8483
+[04:31:58]   outer fold 5: 0.8380
+[04:35:57]   outer fold 6: 0.8764
+[04:40:10]   outer fold 7: 0.8090
+[04:44:47]   outer fold 8: 0.8258
+[04:48:32]   outer fold 9: 0.8596
+[04:48:32] NESTED CV: 0.8406 (+/- 0.0073 SEM)
+[04:48:32] TASK 14 done.
+[04:48:32] FINAL SPEC: {"members": ["rf", "hgb", "lr"], "avg_seeds": {}, "ticket": false, "farepp": false, "imputer": "median", "target_enc": false, "hygiene": false}
+[04:48:32] FINAL 50-fold CV: 0.8370 (+/- 0.0036)
+[04:48:32] ALL DONE
