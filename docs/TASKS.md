@@ -94,11 +94,9 @@ imputation plus one-hot (`handle_unknown="ignore", sparse_output=False`).
 
 ### Task 2: group-based Age imputation (ACCEPTED, +0.2%)
 
-- **Implementation:** a custom `GroupMedianImputer(column="Age",
-  group_by=[Title, Pclass])` transformer *inside* the pipeline, so medians
-  are computed per training fold only. Fallback: global median. (This class
-  lived in an earlier `train.py`; the pattern is what matters and the gated
-  equivalent is in the pipeline.)
+- **Implementation:** `GroupMedianImputer(column="Age", group_by=[Title,
+  Pclass])` from `src/features.py`, placed *inside* the pipeline so medians
+  are computed on each training fold only. Fallback: global median.
 - **Results (CV_MAIN):** by `Title` 0.8103 (rejected); by `Sex x Pclass`
   0.8139 (tie); by **`Title x Pclass` 0.8153 (accepted)**.
 - **Public LB of that model:** 0.74641, the first live demonstration of LB
@@ -303,9 +301,14 @@ The original session hit three real bugs, all fixed in the current
 2. Task 10 crashed when task 9 was rejected (fixed by the dependency guard;
    task 12 always had it).
 3. Nested-CV search params leaked into `champion.json` (`TUNED` is now
-   snapshotted and restored around task 14).
+   snapshotted and restored around task 14). The committed `champion.json`
+   was regenerated with the correct task-7 params (the nested-fold values it
+   originally carried are recorded here in section 9 history).
 4. HPO studies and nested searches now all use `TPESampler(seed=42)`, so
    reruns are deterministic.
+5. A `--smoke` run once wrote unmarked events into the canonical
+   `results.jsonl`; smoke events now carry `"smoke": true`, and the
+   canonical log was cleaned of the unmarked rows.
 
 The two resume scripts from the original session (`run_resume.py`,
 `run_finish.py`) were deleted in the repo cleanup. Their only unique logic

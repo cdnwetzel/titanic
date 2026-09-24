@@ -54,7 +54,7 @@ def log(msg, **event):
     stamp = time.strftime("%H:%M:%S")
     print(f"[{stamp}] {msg}", flush=True)
     if event:
-        JSONL.write(json.dumps({"t": stamp, "host": HOST, **event}) + "\n")
+        JSONL.write(json.dumps({"t": stamp, "host": HOST, "smoke": SMOKE, **event}) + "\n")
 
 
 def record_scores(event, task, label, scores):

@@ -14,12 +14,12 @@
   },
   "tuned": {
     "hgb": {
-      "learning_rate": 0.05143828405076928,
-      "max_iter": 440,
-      "max_leaf_nodes": 62,
-      "min_samples_leaf": 48,
-      "l2_regularization": 5.727904470799623,
-      "max_bins": 235
+      "learning_rate": 0.02220063792187545,
+      "max_iter": 1165,
+      "max_leaf_nodes": 8,
+      "min_samples_leaf": 44,
+      "l2_regularization": 4.0175271118619635,
+      "max_bins": 77
     },
     "rf": {
       "n_estimators": 661,
@@ -28,5 +28,6 @@
       "max_features": 0.44766588900099735
     }
   },
-  "cv_mean": 0.8370378507312786
+  "cv_mean": 0.8370378507312786,
+  "note": "tuned params corrected post-hoc: the original write carried nested-fold params from the task-14 leak bug (TASKS.md section 9); these are the task-7 fresh-CV-validated params that produced cv_mean"
 }
