@@ -1,4 +1,14 @@
-"""Task 6 step 1: screen candidate base learners (15-fold screen)."""
+"""Experiment: screen candidate base learners individually (task 6 step 1).
+
+Repeat testing tool: rerun after any change to features or preprocessing to
+see which candidates are worth a stack gate. Run from anywhere:
+    python experiments/t6_individuals.py
+"""
+
+import sys
+import pathlib
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 import warnings
 
@@ -13,7 +23,9 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
 
-from exputil import BASE_CAT, BASE_NUM, evaluate, load_data, make_preprocessor
+from src.evaluate import evaluate
+from src.features import BASE_CAT, BASE_NUM, load_data
+from src.model import make_pre
 
 train, _ = load_data()
 y = train["Survived"]
@@ -21,7 +33,7 @@ X = train[BASE_NUM + BASE_CAT]
 
 
 def build(clf):
-    return Pipeline([("preprocess", make_preprocessor(BASE_NUM, BASE_CAT)), ("clf", clf)])
+    return Pipeline([("preprocess", make_pre(BASE_NUM, BASE_CAT)), ("clf", clf)])
 
 
 candidates = {
@@ -40,4 +52,4 @@ evaluate(build(LogisticRegression(max_iter=1000, random_state=42)), X, y, "ref: 
 evaluate(build(HistGradientBoostingClassifier(max_iter=500, learning_rate=0.05, max_leaf_nodes=15,
             min_samples_leaf=20, l2_regularization=1.0, random_state=42)), X, y, "ref: HGB")
 for name, clf in candidates.items():
-    evaluate(build(clf), X, y, f"Task 6 candidate: {name}")
+    evaluate(build(clf), X, y, f"candidate: {name}")

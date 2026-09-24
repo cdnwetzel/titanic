@@ -1,22 +1,23 @@
-"""Sequential runner for tasks 6-14 (baseline + tasks 1-16 evaluation).
+"""Gated pipeline runner (tasks 6 to 14) for the Titanic project.
 
 Runs every remaining task in order against the current champion, gating each
-change with paired t-tests on per-fold CV scores (task 15), re-validating
-tuned configs on fresh folds (task 7 caveat), and finishing with a nested-CV
+change with paired t tests on per fold CV scores (task 15), re validating
+tuned configs on fresh folds (task 7 caveat), and finishing with a nested CV
 estimate (task 14).
 
 Logging:
-- Human-readable lines -> stdout (tee to runner.log)
-- Machine-readable events -> results.jsonl (one JSON object per line)
+- Human readable lines to stdout (tee to results/runner.log)
+- Machine readable events to results/results.jsonl (one JSON object per line)
 
-Run out of band with:
-    OMP_NUM_THREADS=4 .venv/bin/python run_all.py 2>&1 | tee runner.log
+Run from the repo root with:
+    OMP_NUM_THREADS=8 python -m pipeline.run_all 2>&1 | tee results/runner.log
 
-Poll with:  tail -f runner.log
+Poll with:  tail -f results/runner.log
+A killed run loses no completed decisions. See docs/TASKS.md for task specs.
 """
 
-import functools
 import json
+import os
 import time
 import warnings
 
@@ -24,35 +25,29 @@ warnings.filterwarnings("ignore")
 
 import numpy as np
 import optuna
-from catboost import CatBoostClassifier
-from lightgbm import LGBMClassifier
-from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import (
-    HistGradientBoostingClassifier,
-    RandomForestClassifier,
-    StackingClassifier,
-)
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import HistGradientBoostingClassifier, RandomForestClassifier
 from sklearn.model_selection import RepeatedStratifiedKFold
-from sklearn.neural_network import MLPClassifier
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler, TargetEncoder
-from sklearn.svm import SVC
-from xgboost import XGBClassifier
 
-from exputil import (
-    BASE_CAT,
-    BASE_NUM,
-    SeedAveragedClassifier,
+from src.evaluate import (
+    CV_FRESH,
+    CV_HALF,
+    CV_MAIN,
+    CV_SCREEN,
     cv_scores,
-    load_data,
     paired_test,
 )
+from src.features import BASE_CAT, BASE_NUM, load_data
+from src.model import (
+    HGB_BASE,
+    RF_BASE,
+    TUNED,
+    build_stack,
+    columns,
+    make_pre,
+)
 
-optuna.logging.set_verbosity(optuna.logging.WARNING)
-
-JSONL = open("results.jsonl", "a", buffering=1)
+os.makedirs("results", exist_ok=True)
+JSONL = open("results/results.jsonl", "a", buffering=1)
 
 
 def log(msg, **event):
@@ -65,109 +60,19 @@ def log(msg, **event):
 def record_scores(event, task, label, scores):
     log(f"{label}: {scores.mean():.4f} ({len(scores)} folds)", event=event, task=task,
         mean=float(scores.mean()), sem=float(scores.std() / np.sqrt(len(scores))))
-    np.save(f"scores_{event}_t{task}.npy", scores)
+    np.save(f"results/scores_{event}_t{task}.npy", scores)
 
 
-# ---------------------------------------------------------------- model zoo
-# Seed-aware factories at module level so multiprocessing can pickle them.
-
-TUNED = {"hgb": {}, "rf": {}}  # filled by task 7
-
-HGB_BASE = {"max_iter": 500, "learning_rate": 0.05, "max_leaf_nodes": 15,
-            "min_samples_leaf": 20, "l2_regularization": 1.0}
-RF_BASE = {"n_estimators": 200}
-
-
-def make_member(name, seed):
-    if name == "rf":
-        params = {**RF_BASE, **TUNED["rf"]}
-        return RandomForestClassifier(random_state=seed, **params)
-    if name == "hgb":
-        params = {**HGB_BASE, **TUNED["hgb"]}
-        return HistGradientBoostingClassifier(random_state=seed, **params)
-    if name == "lr":
-        return LogisticRegression(max_iter=1000, random_state=seed)
-    if name == "xgb":
-        return XGBClassifier(n_estimators=500, learning_rate=0.05, max_depth=3,
-                             subsample=0.8, colsample_bytree=0.8, eval_metric="logloss",
-                             random_state=seed)
-    if name == "cat":
-        return CatBoostClassifier(iterations=500, learning_rate=0.05, depth=6,
-                                  verbose=0, random_state=seed)
-    if name == "mlp":
-        return MLPClassifier(hidden_layer_sizes=(32,), alpha=0.5, max_iter=2000,
-                             random_state=seed)
-    if name == "svc":
-        return SVC(probability=True, random_state=seed)
-    if name == "lgbm":
-        return LGBMClassifier(n_estimators=500, learning_rate=0.05, num_leaves=15,
-                              min_child_samples=20, random_state=seed, verbose=-1)
-    raise ValueError(name)
-
-
-def member_factory(name):
-    return functools.partial(make_member, name)
-
-
-# ---------------------------------------------------------------- preprocessing
-def make_pre(num, cat, imputer="median", target_enc=False):
-    from sklearn.experimental import enable_iterative_imputer  # noqa: F401
-    from sklearn.impute import IterativeImputer
-
-    imp = IterativeImputer(random_state=42) if imputer == "iterative" \
-        else SimpleImputer(strategy="median")
-    branches = [
-        ("num", Pipeline([("impute", imp), ("scale", StandardScaler())]), num),
-        ("cat", Pipeline([("impute", SimpleImputer(strategy="most_frequent")),
-                          ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False))]), cat),
-    ]
-    if target_enc:
-        branches.append(("te", TargetEncoder(target_type="binary"), ["TicketPrefix"]))
-    return ColumnTransformer(branches)
-
-
-# ---------------------------------------------------------------- champion spec
+# ---------------------------------------------------------------- runner state
 SPEC = {
     "members": ["rf", "hgb", "lr"],
-    "avg_seeds": {},          # task 8: member -> n_seeds
-    "ticket": False,          # task 9
-    "farepp": False,          # task 10
-    "imputer": "median",      # task 11
-    "target_enc": False,      # task 12 (requires ticket)
-    "hygiene": False,         # task 13
+    "avg_seeds": {},
+    "ticket": False,
+    "farepp": False,
+    "imputer": "median",
+    "target_enc": False,
+    "hygiene": False,
 }
-
-
-def columns(spec=None):
-    spec = spec or SPEC
-    num = list(BASE_NUM)
-    cat = list(BASE_CAT)
-    if spec["ticket"]:
-        num.append("TicketGroupSize")
-        cat.append("TicketPrefix")
-    if spec["farepp"]:
-        num.append("FarePerPerson")
-    return num, cat
-
-
-def build_stack(spec=None):
-    spec = spec or SPEC
-    num, cat = columns(spec)
-    pre = make_pre(num, cat, imputer=spec["imputer"], target_enc=spec["target_enc"])
-    estimators = []
-    for name in spec["members"]:
-        if spec["avg_seeds"].get(name):
-            est = SeedAveragedClassifier(member_factory(name), n_seeds=spec["avg_seeds"][name])
-        else:
-            est = make_member(name, 42)
-        estimators.append((name, est))
-    return Pipeline([
-        ("preprocess", pre),
-        ("clf", StackingClassifier(
-            estimators=estimators,
-            final_estimator=LogisticRegression(max_iter=1000),
-            cv=5, stack_method="predict_proba", passthrough=True)),
-    ])
 
 
 def load_xy(spec=None):
@@ -194,17 +99,16 @@ def full_eval(model, X, y, event, task, label):
     return scores
 
 
-# ---------------------------------------------------------------- gates
 CHAMP = {"scores": None}
 
 
 def gate(task, label, spec_override=None, event="gate"):
     """Challenger vs champion on identical 50 folds; accept only significant
-    improvement (paired t-test, task 15)."""
+    improvement (paired t test, task 15)."""
 
     def build():
         X, y = load_xy()
-        return full_eval(build_stack(), X, y, event, task, label)
+        return full_eval(build_stack(spec=SPEC, tuned=TUNED), X, y, event, task, label)
 
     scores = with_spec(spec_override or {}, build)
     diff, t, p = paired_test(scores, CHAMP["scores"])
@@ -224,16 +128,17 @@ log("TASK 6: greedy stack composition (25-fold screen -> 50-fold retest)",
     event="task_start", task=6)
 
 X0, y0 = load_xy()
-CHAMP["scores"] = full_eval(build_stack(), X0, y0, "champion_baseline", 6,
+CHAMP["scores"] = full_eval(build_stack(spec=SPEC, tuned=TUNED), X0, y0,
+                            "champion_baseline", 6,
                             "Champion stack RF+HGB+LR (50-fold)")
-champ_half = cv_scores(build_stack(), X0, y0, mode="half")
+champ_half = cv_scores(build_stack(spec=SPEC, tuned=TUNED), X0, y0, mode="half")
 log(f"Champion (25-fold screen): {champ_half.mean():.4f}", event="screen", task=6,
     mean=float(champ_half.mean()))
 
 for name in ["xgb", "cat", "mlp", "svc", "lgbm"]:
     def screen_build():
         X, y = load_xy()
-        return cv_scores(build_stack(), X, y, mode="half")
+        return cv_scores(build_stack(spec=SPEC, tuned=TUNED), X, y, mode="half")
     s_half = with_spec({"members": SPEC["members"] + [name]}, screen_build)
     diff, t, p = paired_test(s_half, champ_half)
     log(f"  +{name}: {s_half.mean():.4f} (25-fold) diff={diff:+.4f} p={p:.3f}",
@@ -242,7 +147,7 @@ for name in ["xgb", "cat", "mlp", "svc", "lgbm"]:
         log(f"  +{name} borderline -> 50-fold retest", event="retest", task=6, member=name)
         gate(6, f"+{name} (retest)", spec_override={"members": SPEC["members"] + [name]},
              event="retest")
-        champ_half = cv_scores(build_stack(), *load_xy(), mode="half")
+        champ_half = cv_scores(build_stack(spec=SPEC, tuned=TUNED), *load_xy(), mode="half")
     else:
         log(f"  +{name} rejected at screen", event="screen_reject", task=6, member=name)
 
@@ -253,7 +158,7 @@ log("TASK 7: Optuna HPO for HGB and RF (screen objective, fresh-CV validation)",
     event="task_start", task=7)
 
 X, y = load_xy()
-num, cat = columns()
+num, cat = columns(SPEC)
 
 
 def make_objective(model_name, Xd, yd, num_cols, cat_cols):
@@ -295,8 +200,8 @@ log(f"HPO best screen: HGB {study_hgb.best_value:.4f} {study_hgb.best_params} | 
     event="hpo_best", task=7, hgb=study_hgb.best_params, rf=study_rf.best_params)
 
 # fresh-CV validation of tuned vs untuned (untouched fold seed)
-pre = make_pre(num, cat)
 for name, study, base_params in [("hgb", study_hgb, HGB_BASE), ("rf", study_rf, RF_BASE)]:
+    pre = make_pre(num, cat)
     if name == "hgb":
         untuned_clf = HistGradientBoostingClassifier(random_state=42, **base_params)
         tuned_clf = HistGradientBoostingClassifier(random_state=42, **study.best_params)
@@ -321,18 +226,20 @@ log("TASK 7 done.", event="task_done", task=7)
 # ================================================================ TASK 8
 log("TASK 8: seed averaging (5 seeds, staged: 25-fold screen -> 50-fold confirm)",
     event="task_start", task=8)
-champ_half = cv_scores(build_stack(), *load_xy(), mode="half")
+champ_half = cv_scores(build_stack(spec=SPEC, tuned=TUNED), *load_xy(), mode="half")
 log(f"Champion refresh (25-fold): {champ_half.mean():.4f}", event="screen", task=8,
     mean=float(champ_half.mean()))
 for name in [m for m in SPEC["members"] if m != "lr"]:
     override = {"avg_seeds": {**SPEC["avg_seeds"], name: 5}}
-    s_half = with_spec(override, lambda: cv_scores(build_stack(), *load_xy(), mode="half"))
+    s_half = with_spec(override, lambda: cv_scores(build_stack(spec=SPEC, tuned=TUNED),
+                                                   *load_xy(), mode="half"))
     diff, t, p = paired_test(s_half, champ_half)
     log(f"  seed-avg x5 {name}: {s_half.mean():.4f} (25-fold) diff={diff:+.4f} p={p:.3f}",
         event="screen", task=8, member=name, diff=float(diff), p=float(p))
     if diff > 0.001 and p < 0.10:
         log(f"  seed-avg {name} promising -> 50-fold confirm", event="retest", task=8, member=name)
         gate(8, f"seed-avg x5 on {name} (confirm)", spec_override=override, event="gate_seeds")
+        champ_half = cv_scores(build_stack(spec=SPEC, tuned=TUNED), *load_xy(), mode="half")
     else:
         log(f"  seed-avg {name} rejected at screen", event="screen_reject", task=8, member=name)
 log("TASK 8 done.", event="task_done", task=8)
@@ -365,10 +272,10 @@ gate(13, "hygiene fares", spec_override={"hygiene": True}, event="gate_hygiene")
 log("TASK 13 done.", event="task_done", task=13)
 
 # ================================================================ TASK 14
-log("TASK 14: nested CV with inner HPO (20 trials) for honest estimate",
+log("TASK 14: nested CV with inner HPO (15 trials, seeded sampler)",
     event="task_start", task=14)
 X, y = load_xy()  # reload: features may have changed in tasks 9-13
-num, cat = columns()
+num, cat = columns(SPEC)
 OUTER = RepeatedStratifiedKFold(n_splits=5, n_repeats=2, random_state=7)
 outer_scores = []
 TUNED_SNAPSHOT = {k: dict(v) for k, v in TUNED.items()}  # restore after nested loop
@@ -380,13 +287,13 @@ for k, (tr, te) in enumerate(OUTER.split(X, y)):
                                 sampler=optuna.samplers.TPESampler(seed=42))
     inner.optimize(make_objective("hgb", X_tr, y_tr, num, cat), n_trials=15)
     TUNED["hgb"] = dict(inner.best_params)
-    model = build_stack()
+    model = build_stack(spec=SPEC, tuned=TUNED)
     model.fit(X_tr, y_tr)
     outer_scores.append(model.score(X_te, y_te))
     log(f"  outer fold {k}: {outer_scores[-1]:.4f}", event="nested_fold", task=14, fold=k,
         score=float(outer_scores[-1]))
 TUNED.clear()
-TUNED.update(TUNED_SNAPSHOT)  # nested-search params must not leak into champion.json
+TUNED.update(TUNED_SNAPSHOT)  # nested search params must not leak into champion.json
 outer_scores = np.array(outer_scores)
 log(f"NESTED CV: {outer_scores.mean():.4f} (+/- {outer_scores.std()/np.sqrt(len(outer_scores)):.4f} SEM)",
     event="nested_cv", task=14, mean=float(outer_scores.mean()),
@@ -398,6 +305,7 @@ log(f"FINAL SPEC: {json.dumps(SPEC)}", event="final_spec", spec=json.loads(json.
 log(f"FINAL 50-fold CV: {CHAMP['scores'].mean():.4f} (+/- "
     f"{CHAMP['scores'].std()/np.sqrt(len(CHAMP['scores'])):.4f})",
     event="final_cv", mean=float(CHAMP["scores"].mean()))
-with open("champion.json", "w") as f:
-    json.dump({"spec": SPEC, "tuned": TUNED, "cv_mean": float(CHAMP["scores"].mean())}, f, indent=2)
+with open("results/champion.json", "w") as f:
+    json.dump({"spec": SPEC, "tuned": TUNED, "cv_mean": float(CHAMP["scores"].mean())},
+              f, indent=2)
 log("ALL DONE", event="all_done")

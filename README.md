@@ -1,195 +1,163 @@
-# Titanic: From Baseline to Tuned Stack — A Kaggle Learning Journey
+# Titanic: From Baseline to Tuned Stack
 
-My first Kaggle competition, worked end-to-end: environment setup → EDA →
-baseline → sixteen iterative tasks → live submissions. The goal was never to
-top the leaderboard — it was to learn the ML competition workflow and, more
-importantly, to learn *how to evaluate claims of improvement*. The most
-valuable results here are the ones that didn't pan out.
+A first Kaggle competition, worked end to end as a controlled experiment in
+knowing when a model change is real: baseline, sixteen tasks, every candidate
+improvement gated by paired statistical tests, five live submissions, and a
+leaderboard that could not see any of it.
 
-**Final model:** stacking ensemble (RF + gradient boosting + logistic
-regression, LR meta-learner), 50-fold CV **0.8370 ± 0.0036**, nested CV with
-inner HPO **0.8406 ± 0.0073**.
+Author: Chris Wetzel. Twenty eight years in IT, three in AI, one in ML.
+This repo is written for people like me: strong technical backgrounds, new to
+machine learning, and suspicious of any claim that was not measured properly.
+All results here trace to per fold score arrays and a machine readable
+decision log.
+
+**Final model:** stacking ensemble (random forest + gradient boosting +
+logistic regression, logistic meta learner). 50 fold CV **0.8370 +/- 0.0036**;
+nested CV with the hyperparameter search inside the validation loop
+**0.8406 +/- 0.0073**.
 
 ## Results at a glance
 
 | Step | Change | Repeated CV | Public LB |
 |---|---|---|---|
 | Baseline | Random forest, 5 simple features | 0.8134 | **0.76555** |
-| Tasks 1–2 | Title/FamilySize/Deck features, group imputation | 0.8153 | 0.74641 |
+| Tasks 1 to 2 | Classic features, group imputation | 0.8153 | 0.74641 |
 | Task 3 | HistGradientBoosting, full features | 0.8203 | 0.75358 |
 | Task 4 | Soft vote RF+HGB+LR | 0.8314 | 0.76076 |
-| Task 5 | **Stacking (LR meta, passthrough)** | **0.8365** | — |
-| Task 7 | Optuna-tuned HGB/RF members | 0.8370 | 0.75837 |
-| Task 14 | Nested CV estimate of final pipeline | 0.8406 ± 0.0073 | — |
+| Task 5 | **Stacking (LR meta learner)** | **0.8365** | 0.75837 (task 7 line) |
+| Task 7 | Optuna tuned HGB/RF members | 0.8370 | 0.75837 |
+| Task 14 | Nested CV estimate of final pipeline | 0.8406 +/- 0.0073 | 0.75837 |
 
-CV arc: **0.8134 → 0.8370 (+2.4%)**, honest nested estimate 0.8406.
-Public LB across all five submissions: 0.746–0.766 — a flat noise band that
-never once reflected the real improvement. That is the central finding.
+CV arc: **0.8134 to 0.8370 (+2.4%)**, honest nested estimate 0.8406.
+Public LB across all five submissions: 0.746 to 0.766, a flat noise band.
+That contrast is the central finding of the project and the reason the
+documents below exist.
 
-## Setup
+## Repository layout
 
-- Python 3.12 venv: `kaggle`, `pandas`, `scikit-learn`, `xgboost`, `lightgbm`,
-  `catboost`, `optuna`
-- Data via Kaggle CLI (`kaggle competitions download -c titanic`)
-- `eda.py` — quick exploration; `train.py` — final champion pipeline
-- `run_all.py` / `run_resume.py` / `run_finish.py` — the sequential task
-  runner: every candidate change is gated by a paired t-test on per-fold
-  scores from 50 identical CV folds (5-fold × 10 repeats)
-- `results.jsonl` — machine-readable log of every gate; `champion.json` —
-  final winning configuration
-
-## The data in one paragraph
-
-891 training rows, 12 columns, 38% overall survival. The signal is real but
-simple: 74% of females survived vs 19% of males; survival falls from 63%
-(1st class) to 24% (3rd class). `Age` is 20% missing, `Cabin` 77% missing.
-Everything past this point is squeezing fractions of a percent out of a
-small, well-studied dataset.
-
-## Step 0 — Baseline
-
-Random forest on `Pclass, Age, SibSp, Parch, Fare, Sex, Embarked` with
-median/mode imputation in a leak-free sklearn `Pipeline`. Repeated CV:
-**0.8134** — the number every later step must honestly beat.
-
-## Tasks 1–4 (features → ensemble)
-
-Full detail in git history; summary: classic engineered features (Title,
-FamilySize, Deck) showed **no significant gain** for a random forest (single
-CV said +0.5%, repeated CV said noise — Lesson 1: confirm with repeated CV).
-Group-based Age imputation (Title × Pclass) helped slightly (+0.2%). Gradient
-boosting unlocked the task-1 features (+0.7%). A soft-voting ensemble of
-three diverse model families added +1.1% — diversity of inductive bias, not
-individual strength, is what ensembles buy (uniform weights beat
-up-weighting the strongest member).
-
-## Task 5 — Stacking beats voting
-
-`StackingClassifier` with an LR meta-learner over out-of-fold predictions,
-with `passthrough=True` (meta sees base predictions *and* raw features):
-0.8365 vs 0.8314 soft vote, paired p = 0.0005. **Accepted.**
-
-## Task 6 — Diverse learners: correlation beats strength
-
-Solo 50-fold scores: XGBoost 0.8319, CatBoost 0.8321, SVC 0.8294, MLP 0.8282
-— every candidate alone rivals the entire old ensemble. Added to the stack
-one at a time with paired gates: **all rejected**. XGB (+0.0021, p=0.071)
-and CatBoost (+0.0024, p=0.088) were consistently positive but never
-significant — even added jointly (p=0.094). MLP/SVC/LightGBM were negative.
-
-**Lesson:** a stack doesn't want the strongest models; it wants the most
-*orthogonal errors*. XGBoost and CatBoost are excellent, but their mistakes
-correlate with HGB's — the meta-learner already has that information.
-
-## Task 7 — HPO: big solo gains, zero ensemble gain
-
-Optuna (100 trials): tuned HGB **0.8320 vs 0.8176 untuned (+1.44%)**, tuned
-RF **0.8305 vs 0.8085 (+2.20%)** — validated on a *fresh* 50-fold protocol to
-guard against search-overfitting the CV (both p < 0.0001). Tuned RF alone
-nearly matches the previous whole ensemble.
-
-But swapped into the stack: 0.8370 vs 0.8365, **p = 0.74 — no significant
-ensemble gain**. The ensemble was already extracting what tuning provides.
-
-**Lesson:** single-model improvements don't automatically transfer to
-ensembles. Measure at the level you ship.
-
-## Task 8 — Seed averaging: nothing to average
-
-Averaging 5 seeds per stochastic member: diff 0.0000, p = 1.000. At this
-scale, with regularized configs, seed variance is already below the noise
-floor. **Rejected** — cheap to test, cheaper to keep the simpler model.
-
-## Tasks 9–13 — Features, imputation, hygiene: all rejected
-
-| Task | Change | Gate result |
-|---|---|---|
-| 9 Ticket groups | +TicketGroupSize, TicketPrefix | −0.0019, p=0.36 |
-| 10 Fare per person | — | skipped (depends on 9) |
-| 11 Iterative imputation | IterativeImputer for numerics | −0.0024, p=0.07 |
-| 12 Target encoding | — | skipped (depends on 9) |
-| 13 Hygiene | Fare ≤ 0 → NaN | +0.0011, p=0.21 |
-
-**Lesson:** the famous "secret features" of Titanic lore mostly duplicate
-what `Sex`, `Pclass`, `Fare` and the task-1 features already encode. The
-disciplined gates — not intuition — decide.
-
-## Task 14 — The honest number: nested CV 0.8406
-
-Final pipeline re-evaluated with HPO *inside* each outer fold (10 outer
-folds × 15-trial inner search): **0.8406 ± 0.0073**. Slightly above the flat
-50-fold 0.8370 — i.e., the hyperparameter search did **not** overfit the
-evaluation protocol. This is the most trustworthy estimate of the model's
-true skill.
-
-## Task 15 — Paired tests: the discipline throughout
-
-Every accept/reject decision above is a paired t-test on per-fold scores
-from identical folds. Gate: improvement > 0.1% and p < 0.05, with a
-25-fold screen → 50-fold retest stage for borderline cases. No decision was
-made on a single CV run or on leaderboard feedback.
-
-## Task 16 — The leaderboard cannot see any of this
-
-Five submissions spanning CV 0.8134 → 0.8406 landed in a 0.746–0.766 band;
-the displayed rank (~7,390 of 10,200, ahead of ~19%) is still held by the
-day-one baseline. The public LB scores a few hundred rows — ±2% between two
-models is ~8 passengers, indistinguishable from luck.
-
-**Lesson:** model selection on the public leaderboard is fitting to noise.
-Trust controlled CV; spend LB submissions sparingly as coarse sanity checks.
-We used 5 of today's 10 and stopped — the discipline *is* the deliverable.
-
-## Final lessons (the transferable set)
-
-1. On small data, single CV runs lie. Repeated CV + paired tests or it didn't happen.
-2. A feature's value is model-dependent; a model's value is ensemble-dependent.
-3. Ensembles buy orthogonal errors, not individual accuracy.
-4. Single-model gains don't transfer to ensembles automatically.
-5. HPO is the easiest place to overfit your CV protocol — re-validate on fresh folds; nested CV for the final number.
-6. At small scale, seed variance and "hygiene" fixes are below the noise floor.
-7. The public leaderboard is a noisy oracle. CV is the compass; LB is a lighthouse glimpsed through fog.
-
-Also worth knowing: the top of the Titanic leaderboard (~73 teams at a
-perfect 1.00000) is overfit or junk entries. The legitimate modeling
-ceiling is ~0.84; the nested estimate of 0.8406 says this pipeline is
-essentially at it.
-
-## Engineering note (for anyone rerunning this)
-
-Parallelizing tiny fits across processes fought us all day: loky (fork and
-spawn) and a persistent fork pool all eventually lost workers silently once
-XGBoost/LightGBM/CatBoost entered the workload, hanging `pool.map` with no
-error. The final runner is **serial** with OpenMP-parallel fits
-(`OMP_NUM_THREADS=8`) — slower per evaluation, but deterministic and
-hang-proof. On 891-row data, robust beats fast.
-
-## Reproduce
-
-```bash
-python3 -m venv .venv && .venv/bin/pip install kaggle pandas scikit-learn xgboost lightgbm catboost optuna
-# ~/.kaggle/access_token or kaggle.json must be configured
-.venv/bin/kaggle competitions download -c titanic -p data && cd data && unzip titanic.zip && cd ..
-.venv/bin/python eda.py                            # quick data exploration
-OMP_NUM_THREADS=8 .venv/bin/python train.py        # trains champion -> submission.csv
-# full task pipeline (gates, ~3h serial):
-OMP_NUM_THREADS=8 .venv/bin/python -u run_all.py 2>&1 | tee runner.log
-.venv/bin/kaggle competitions submit -c titanic -f submission.csv -m "message"
+```
+titanic/
+├── README.md              this file
+├── train.py               entry point: trains the champion, writes submission.csv
+├── eda.py                 entry point: data exploration
+├── requirements.txt       pinned environment
+├── submission.csv         current champion predictions
+├── docs/
+│   ├── LEARNING_JOURNEY.md   narrative writeup of the full arc, for peers
+│   └── TASKS.md              complete task by task reproducibility spec
+├── src/                   library code (features, evaluation, models)
+│   ├── features.py        feature engineering and data loading
+│   ├── evaluate.py        CV protocols, fold scoring, paired tests
+│   └── model.py           model zoo, preprocessing, champion stack builder
+├── pipeline/
+│   └── run_all.py         the gated full pipeline, tasks 6 to 14
+├── experiments/           standalone levers: screens, stack composition, HPO
+│   └── README.md          what each script is for and future levers
+├── tests/                 pytest suite (features, harness, model, smoke)
+├── scripts/
+│   └── env_info.py        capture machine context for hardware comparison
+└── results/               audit trail: results.jsonl, runner.log,
+                         champion.json, per fold score arrays
 ```
 
-## Files
+Competition data is not included (Kaggle rules). Download it:
 
-- `LEARNING_JOURNEY.md` — narrative writeup of the full arc, for peers
-- `TASKS.md` — complete task-by-task reproducibility spec (baseline + all 16
-  tasks: exact configs, search spaces, gate criteria, results, commands)
-- `train.py` — final champion: engineered features → median impute + scale +
-  one-hot → stacking ensemble (tuned RF/HGB + LR, LR meta, passthrough)
-- `eda.py` — data overview: shapes, missing values, survival rates
-- `exputil.py` — harness: feature loaders, CV protocols, paired-test gate,
-  seed-averaging wrapper
-- `run_all.py`, `run_resume.py`, `run_finish.py` — the sequential task
-  runners (kept for audit; run_all.py supersedes the other two)
-- `results.jsonl` / `runner.log` — every gate decision; `champion.json` —
-  final configuration
-- `submission.csv` — predictions from the final champion
-- `data/` — raw competition CSVs
+```bash
+kaggle competitions download -c titanic -p data && cd data && unzip titanic.zip && cd ..
+```
+
+## Quick start (clone and reproduce)
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+python scripts/env_info.py --out results/env_$(hostname).json   # record the machine
+.venv/bin/python train.py          # champion: prints CV, writes submission.csv
+.venv/bin/python -m pytest tests   # suite: features, harness, model, smoke
+```
+
+Full pipeline (tasks 6 to 14, about 3 h serial):
+
+```bash
+OMP_NUM_THREADS=8 python -m pipeline.run_all 2>&1 | tee results/runner.log
+```
+
+Experiment levers (see experiments/README.md):
+
+```bash
+python experiments/t6_individuals.py    # screen candidate learners (50 fold)
+python experiments/t6_stack.py          # greedy stack composition
+OMP_NUM_THREADS=8 python experiments/t7_hpo.py   # HPO with fresh-CV validation
+```
+
+## Repeating on a second machine (hardware comparison)
+
+The pipeline is serial by design and deterministic given the pinned
+requirements, so gate scores should reproduce across machines to within BLAS
+noise (watch the third decimal). To compare hardware properly:
+
+1. Clone, create the venv from `requirements.txt`, download the data.
+2. `python scripts/env_info.py --out results/env_<hostname>.json` on each
+   machine, and commit the files.
+3. Run the quick start above. Compare:
+   - `train.py` CV printout (should match 0.8361 +/- small BLAS noise)
+   - `pytest` results (the reference band test guards against version drift)
+   - per evaluation wall clock, from the timestamps in `results/runner.log`
+4. For the full comparison, run the pipeline on both machines and diff
+   `results/results.jsonl` event by event.
+
+On this project's original hardware (Xeon E5-2699 v4, 44 threads, dual RTX
+A4500), the winning configuration turned out to be serial single process.
+The bottleneck at 891 rows is information in the data, not FLOPs. A second
+machine with different silicon is a useful check on reproducibility, not a
+speedup.
+
+## What the documents contain
+
+- `docs/LEARNING_JOURNEY.md`: the story. What was tried, what the numbers
+  said, and the seven lessons that transfer to any ML project.
+- `docs/TASKS.md`: the spec. Every task with exact configurations, search
+  spaces, gate criteria, results with p values, and reproduce commands.
+
+## The short version of the findings
+
+1. Single CV runs on small data lie. Repeated CV plus paired tests, or it
+   did not happen.
+2. A feature's value is model dependent; a model's value is ensemble
+   dependent. Measure at the level you ship.
+3. Ensembles buy orthogonal errors, not individual accuracy. Two solo-0.832
+   gradient boosters were rejected from the stack three ways (p around 0.09).
+4. Hyperparameter tuning gave +1.4% and +2.2% on fresh CV for the single
+   models, and nothing significant in the ensemble (p = 0.74).
+5. Seed averaging, ticket groups, iterative imputation, fare hygiene: all
+   rejected by the gates. Famous tricks mostly duplicate existing signal.
+6. The public leaderboard scored five models spanning CV 0.8134 to 0.8406
+   inside one 0.746 to 0.766 band. Model selection against it is fitting to
+   noise.
+7. The top of the Titanic leaderboard (73 teams at 1.00000) is overfit or
+   junk. The legitimate ceiling is about 0.84. The nested estimate says this
+   pipeline is essentially there.
+
+## Engineering note
+
+Parallelizing tiny fits across processes fought this project for a full
+day: loky (fork and spawn) and a persistent fork pool each eventually lost
+worker processes silently, hanging `pool.map` without an error, always once
+XGBoost, LightGBM, or CatBoost entered the workload (OpenMP runtimes and
+forked workers do not mix reliably here). The final design is serial across
+folds with OpenMP parallel fits. Slower per evaluation, deterministic,
+hang proof.
+
+## Files of record
+
+| File | Role |
+|---|---|
+| `src/features.py` | feature engineering, data loading |
+| `src/evaluate.py` | CV protocols, `cv_scores`, `paired_test`, seed averaging |
+| `src/model.py` | model zoo, `make_pre`, `build_stack`, tuned parameters |
+| `pipeline/run_all.py` | gated pipeline, tasks 6 to 14 |
+| `experiments/` | standalone levers for repeat testing |
+| `tests/` | pytest suite |
+| `results/results.jsonl` | every gate decision, machine readable |
+| `results/runner.log` | human readable run log |
+| `results/champion.json` | final spec and tuned parameters |
+| `results/env_*.json` | per machine hardware context |
