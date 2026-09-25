@@ -244,6 +244,11 @@ dozens of cores start mattering when the model is a neural net or the data
 stops fitting in cache; neither applies here, and no amount of hardware
 fixes that.
 
+Postscript: the project later ran bit-for-bit identically on a second
+workstation (Ryzen 9 5950X) about 3x faster, confirming that the serial,
+seeded design makes results a property of the code, not the silicon. The
+full comparison: `docs/HARDWARE_COMPARISON.md`.
+
 ## Reproduce
 
 ```bash

@@ -300,6 +300,11 @@ untuned HGB (the canary that catches library version drift).
    event by event. Per fold arrays in `results/scores_*.npy` settle any
    disagreement about a specific gate.
 
+**Recorded result:** the battery has been run on both project machines
+(Xeon E5-2699 v4 and Ryzen 9 5950X). Cross-machine parity is max delta
+0.0000 on every matched event; the full spec and timing analysis is in
+`docs/HARDWARE_COMPARISON.md`.
+
 ## 9. History: known issues fixed since the original run
 
 The original session hit three real bugs, all fixed in the current

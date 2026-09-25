@@ -1,0 +1,20 @@
+=== asrock vs original canonical ===
+reference:  results/results.jsonl (12 scored events)
+candidate:  results/asrock/results_asrock.jsonl (35 scored events)
+matched:    12
+only in candidate:  23 (e.g. [('full_baseline', 0, None), ('full_t1_all', 1, None), ('full_t1_base', 1, None)])
+
+('champion_baseline', 0, None)                          ref=0.8370 cand=0.8370 delta=+0.0000
+('champion_baseline', 6, None)                          ref=0.8365 cand=0.8365 delta=+0.0000
+('final_cv', None, None)                                ref=0.8370 cand=0.8365 delta=-0.0006
+('gate_hygiene', 13, None)                              ref=0.8382 cand=0.8343 delta=-0.0038 <<<
+('gate_iterimp', 11, None)                              ref=0.8347 cand=0.8345 delta=-0.0002
+('gate_ticket', 9, None)                                ref=0.8346 cand=0.8334 delta=-0.0011
+('gate_tuned', 7, None)                                 ref=0.8370 cand=0.8337 delta=-0.0034 <<<
+('nested_cv', 14, None)                                 ref=0.8406 cand=0.8406 delta=+0.0000
+('posthoc_joint', 6, None)                              ref=0.8395 cand=0.8395 delta=+0.0000
+('retest', 6, None)                                     ref=0.8388 cand=0.8388 delta=+0.0000
+('screen', 6, None)                                     ref=0.8370 cand=0.8370 delta=+0.0000
+('screen', 8, None)                                     ref=0.8368 cand=0.8332 delta=-0.0036 <<<
+
+max |delta|: 0.0038; flagged beyond 0.002: 3

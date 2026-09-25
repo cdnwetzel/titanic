@@ -1,0 +1,41 @@
+=== asrock vs t5810 rerun ===
+reference:  results/validation/results.jsonl (33 scored events)
+candidate:  results/asrock/results_asrock.jsonl (35 scored events)
+matched:    33
+only in candidate:  2 (e.g. [('champion_baseline', 0, None), ('posthoc_joint', 6, None)])
+
+('champion_baseline', 6, None)                          ref=0.8365 cand=0.8365 delta=+0.0000
+('final_cv', None, None)                                ref=0.8365 cand=0.8365 delta=+0.0000
+('full_baseline', 0, None)                              ref=0.8129 cand=0.8129 delta=+0.0000
+('full_t1_all', 1, None)                                ref=0.8089 cand=0.8089 delta=+0.0000
+('full_t1_base', 1, None)                               ref=0.8127 cand=0.8127 delta=+0.0000
+('full_t1_deck', 1, None)                               ref=0.8064 cand=0.8064 delta=+0.0000
+('full_t1_famgroup', 1, None)                           ref=0.8116 cand=0.8116 delta=+0.0000
+('full_t1_family', 1, None)                             ref=0.8099 cand=0.8099 delta=+0.0000
+('full_t1_hascabin', 1, None)                           ref=0.8093 cand=0.8093 delta=+0.0000
+('full_t1_title', 1, None)                              ref=0.8120 cand=0.8120 delta=+0.0000
+('full_t1_title_deck', 1, None)                         ref=0.8119 cand=0.8119 delta=+0.0000
+('full_t1_title_family', 1, None)                       ref=0.8076 cand=0.8076 delta=+0.0000
+('full_t2_by_sex_pclass', 2, None)                      ref=0.8139 cand=0.8139 delta=+0.0000
+('full_t2_by_title', 2, None)                           ref=0.8130 cand=0.8130 delta=+0.0000
+('full_t2_by_title_pclass', 2, None)                    ref=0.8135 cand=0.8135 delta=+0.0000
+('full_t3_default_base', 3, None)                       ref=0.8182 cand=0.8182 delta=+0.0000
+('full_t3_default_full', 3, None)                       ref=0.8193 cand=0.8193 delta=+0.0000
+('full_t3_tuned_full', 3, None)                         ref=0.8203 cand=0.8203 delta=+0.0000
+('full_t4_rf_hgb', 4, None)                             ref=0.8219 cand=0.8219 delta=+0.0000
+('full_t4_rf_hgb_lr', 4, None)                          ref=0.8314 cand=0.8314 delta=+0.0000
+('full_t4_rf_hgb_lr_w121', 4, None)                     ref=0.8303 cand=0.8303 delta=+0.0000
+('full_t4_rf_hgb_w12', 4, None)                         ref=0.8210 cand=0.8210 delta=+0.0000
+('full_t5_no_passthrough', 5, None)                     ref=0.8337 cand=0.8337 delta=+0.0000
+('full_t5_passthrough', 5, None)                        ref=0.8365 cand=0.8365 delta=+0.0000
+('gate_hygiene', 13, None)                              ref=0.8343 cand=0.8343 delta=+0.0000
+('gate_iterimp', 11, None)                              ref=0.8345 cand=0.8345 delta=+0.0000
+('gate_ticket', 9, None)                                ref=0.8334 cand=0.8334 delta=+0.0000
+('gate_tuned', 7, None)                                 ref=0.8337 cand=0.8337 delta=+0.0000
+('gate_tuned_reference', 7, None)                       ref=0.8370 cand=0.8370 delta=+0.0000
+('nested_cv', 14, None)                                 ref=0.8406 cand=0.8406 delta=+0.0000
+('retest', 6, None)                                     ref=0.8388 cand=0.8388 delta=+0.0000
+('screen', 6, None)                                     ref=0.8370 cand=0.8370 delta=+0.0000
+('screen', 8, None)                                     ref=0.8332 cand=0.8332 delta=+0.0000
+
+max |delta|: 0.0000; flagged beyond 0.002: 0

@@ -44,7 +44,8 @@ titanic/
 ├── submission.csv         current champion predictions
 ├── docs/
 │   ├── LEARNING_JOURNEY.md   narrative writeup of the full arc, for peers
-│   └── TASKS.md              complete task by task reproducibility spec
+│   ├── TASKS.md              complete task by task reproducibility spec
+│   └── HARDWARE_COMPARISON.md  Xeon 2016 vs Ryzen 2020: specs, timings, parity
 ├── src/                   library code (features, evaluation, models)
 │   ├── features.py        feature engineering and data loading
 │   ├── evaluate.py        CV protocols, fold scoring, paired tests
@@ -125,6 +126,15 @@ The bottleneck at 891 rows is information in the data, not FLOPs. A second
 machine with different silicon is a useful check on reproducibility, not a
 speedup.
 
+**Recorded result (cross-machine validation, 2026-09-24):** the full
+battery was run on a second workstation (Ryzen 9 5950X, Zen 3, 2020).
+Against the Xeon rerun, every matched event reproduced with **max delta
+0.0000**, including the champion anchor 0.8370378507312786 bit-identical
+and nested CV 0.8406 +/- 0.0073 fold-for-fold. The Ryzen finished about
+3x faster per evaluation. Full spec table, timing breakdown, and analysis:
+`docs/HARDWARE_COMPARISON.md`. Raw evidence: `results/asrock/`,
+`results/benchmark_*.json`, `results/env_*.json`, `results/lscpu_*.txt`.
+
 ## What the documents contain
 
 - `docs/LEARNING_JOURNEY.md`: the story. What was tried, what the numbers
@@ -179,3 +189,5 @@ hang proof.
 | `results/env_*.json` | per machine hardware context |
 | `results/benchmark_*.json` | standardized battery: fixed-seed scores plus wall times per machine |
 | `results/kaggle_submissions.txt` | recorded leaderboard submissions |
+| `results/lscpu_*.txt` | full lscpu capture per machine (specs, flags, caches, mitigations) |
+| `results/asrock/` | the Ryzen run: full event log, runner log, comparisons, lscpu |
