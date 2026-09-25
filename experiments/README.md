@@ -13,14 +13,34 @@ These mirror the logic embedded in `pipeline/run_all.py` and exist so the
 levers can be pulled independently. See `docs/TASKS.md` for the recorded
 results and `docs/LEARNING_JOURNEY.md` for what they taught.
 
-## Future levers not yet implemented
+## Future levers: executed and resolved (2026-09-24, Ryzen 5950X)
 
-The remaining ideas worth testing, in expected-value order, each a small
-edit to `src/model.py` or a new script here:
+Eight honest levers, each with a genuine improvement mechanism, gated
+against the shipped champion on 50 paired folds (`experiments/future_levers.py`).
+All eight rejected; the champion stands. Level-2 seed stacks, a GBM meta
+learner, and cv=10 OOF were excluded from testing as noise or as already
+disproven (task 8 measured seed variance at exactly 0.0000).
 
-1. Stacking meta learner variants (elastic net, shallow GBM) or `cv=10` OOF
-2. `ExtraTreesClassifier` as a bagging member (more decorrelated than RF)
-3. Full stacking level 2: stack of stacks with diverse seeds
-4. Feature: `Age` banded into child/adult/elder plus interaction with `Sex`
-5. Spline or polynomial features for `Fare` and `Age` in the LR member
-6. Calibrated classifiers (`CalibratedClassifierCV`) as members
+| Lever | CV mean | paired diff | p | Decision |
+|---|---|---|---|---|
+| ExtraTrees member | 0.8361 | -0.0009 | 0.231 | reject |
+| KNN member | 0.8358 | -0.0012 | 0.047 | reject |
+| Calibrated RF/HGB members | 0.8347 | -0.0024 | 0.079 | reject |
+| ElasticNet meta learner | 0.8371 | +0.0001 | 0.883 | reject |
+| AgeBand x Sex feature | 0.8323 | -0.0047 | 0.0007 | reject, significantly worse |
+| log1p(Fare) feature | 0.8355 | -0.0016 | 0.021 | reject, significantly worse |
+| Vote stack+CatBoost 1:1 | 0.8383 | +0.0012 | 0.535 | reject |
+| Vote stack+CatBoost 2:1 | 0.8370 | -0.0000 | 0.998 | reject |
+
+Two findings worth keeping: explicit age banding destroys information the
+trees already extract from continuous Age (significantly worse), and
+member-level diversity beyond LR (ExtraTrees, KNN, CatBoost) consistently
+adds nothing to this stack, corroborating the task 6 lesson with three
+more model families.
+
+A tighter honest estimate of the champion also ran
+(`experiments/nested_cv_tight.py`, 25 outer folds x 50-trial inner HPO):
+**0.8373 +/- 0.0043**. The original 10-outer nested CV read 0.8406 +/-
+0.0073; the tighter protocol's central estimate sits at the flat 50-fold
+CV value (0.8370), confirming the original's optimism was small-sample
+noise in the outer folds, not HPO leakage.

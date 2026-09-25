@@ -208,10 +208,13 @@ imputation plus one-hot (`handle_unknown="ignore", sparse_output=False`).
   outer folds. Inside each, a fresh 15-trial Optuna search
   (`TPESampler(seed=42)`, HGB space from task 7) runs on the outer training
   split only, then one champion fit scores the outer test split.
-- **Result:** **0.8406 +/- 0.0073**. Per fold: 0.8603, 0.8258, 0.8034,
-  0.8596, 0.8483, 0.8380, 0.8764, 0.8090, 0.8258, 0.8596. At or above the
-  flat 50-fold 0.8370, so the HPO did not inflate the estimate.
-- **Reproduce:** task 14 section of `pipeline/run_all.py` (~20 min).
+- **Result:** 0.8406 +/- 0.0073 (original). A tighter rerun with 25 outer
+  folds and 50 inner trials (`experiments/nested_cv_tight.py`) produced
+  **0.8373 +/- 0.0043**, landing on the flat 50-fold CV value (0.8370).
+  The original read slightly optimistic through small-sample noise in 10
+  outer folds; 0.837 is the sharpened honest estimate.
+- **Reproduce:** task 14 section of `pipeline/run_all.py` (~20 min);
+  tight version in `experiments/nested_cv_tight.py` (~90 min).
 
 ### Task 15: paired-test discipline (methodology)
 
@@ -238,8 +241,13 @@ sample.
 
 - Pipeline: `make_pre` (section 2) feeding `StackingClassifier([tuned RF,
   tuned HGB, LR], LR meta, cv=5, predict_proba, passthrough=True)`.
-- Estimates: CV_MAIN 0.8370 +/- 0.0036; nested CV 0.8406 +/- 0.0073.
+- Estimates: CV_MAIN 0.8370 +/- 0.0036; nested CV (25 outer x 50 inner
+  trials) 0.8373 +/- 0.0043, the sharpened honest number.
 - `results/champion.json` holds the exact spec and tuned parameters.
+
+Eight further honest levers (diversity members, calibrated members, meta
+variants, mechanism features, alternative combiners) were all rejected on
+paired gates; see `experiments/README.md` for the outcome table.
 
 ## 6. Reproducing the full battery
 

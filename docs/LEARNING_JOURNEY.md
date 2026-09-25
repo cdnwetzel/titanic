@@ -12,7 +12,8 @@ evaluation instincts have to be built.
 **Final model:** stacking ensemble (random forest + gradient boosting +
 logistic regression, logistic meta learner). 50 fold CV **0.8370 +/-
 0.0036**; nested CV with the hyperparameter search inside the validation
-loop **0.8406 +/- 0.0073**. Public leaderboard: somewhere in a 0.746 to
+loop, tightened to 25 outer folds by 50 inner trials, **0.8373 +/- 0.0043**
+(the sharp honest estimate). Public leaderboard: somewhere in a 0.746 to
 0.766 noise band, best displayed score held by the day one baseline.
 
 If that contrast surprises you, this document is for you.
@@ -173,14 +174,15 @@ task dependencies in your runner, or you will KeyError at 3 a.m.
 
 ### Task 14: the honest number
 
-Final pipeline, re evaluated with the HPO running inside every outer fold
-(10 outer folds by a 15 trial inner search): **0.8406 +/- 0.0073**.
-
-Slightly above the flat 50 fold estimate, so the search never overfit the
-evaluation protocol. This is the most trustworthy estimate of the
-pipeline's true skill, and it says: essentially at Titanic's legitimate
-ceiling (about 0.84; the 73 perfect scores atop the leaderboard are
-overfit or junk entries).
+Final pipeline, re evaluated with the HPO running inside every outer fold:
+0.8406 +/- 0.0073 with 10 outer folds; sharpened to **0.8373 +/- 0.0043**
+with 25 outer folds and 50 inner trials, landing on the flat 50 fold CV
+value. The tighter protocol shows the original read was mildly optimistic
+through small-sample outer-fold noise, and that the search never inflated
+the estimate. This is the most trustworthy measure of the pipeline's true
+skill: about 0.837, essentially at Titanic's legitimate ceiling (about
+0.84; the 73 perfect scores atop the leaderboard are overfit or junk
+entries).
 
 ### Task 15: the discipline, held throughout
 

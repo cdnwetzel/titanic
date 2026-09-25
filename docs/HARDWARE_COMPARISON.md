@@ -61,6 +61,7 @@ of its rated boost clock while the Ryzen reaches its rated boost.
 | Ryzen run vs original canonical log | 0.0000 on all reference anchors |
 | Champion anchor (`gate_tuned_reference`) | bit-identical: 0.8370378507312786 |
 | Nested CV with inner HPO | 0.8406 +/- 0.0073 on both, fold-for-fold identical |
+| Nested CV, tightened (25 outer x 50 inner) | 0.8373 +/- 0.0043 |
 | Gate decisions (accept/reject) | identical on both machines |
 
 The three rows that differ from the *original* log (`gate_tuned`,

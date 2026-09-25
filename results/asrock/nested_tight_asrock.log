@@ -1,0 +1,27 @@
+[01:49:35]   outer fold 0: 0.8715
+[01:54:05]   outer fold 1: 0.8090
+[01:56:38]   outer fold 2: 0.8146
+[01:59:52]   outer fold 3: 0.8596
+[02:03:59]   outer fold 4: 0.8483
+[02:08:36]   outer fold 5: 0.8380
+[02:11:13]   outer fold 6: 0.8652
+[02:14:12]   outer fold 7: 0.8315
+[02:17:47]   outer fold 8: 0.8315
+[02:20:49]   outer fold 9: 0.8483
+[02:23:35]   outer fold 10: 0.8324
+[02:26:22]   outer fold 11: 0.8764
+[02:29:35]   outer fold 12: 0.8539
+[02:33:18]   outer fold 13: 0.8202
+[02:35:55]   outer fold 14: 0.8483
+[02:41:37]   outer fold 15: 0.8436
+[02:44:20]   outer fold 16: 0.8090
+[02:49:37]   outer fold 17: 0.8652
+[02:54:25]   outer fold 18: 0.8371
+[02:59:46]   outer fold 19: 0.8034
+[03:05:05]   outer fold 20: 0.8380
+[03:08:10]   outer fold 21: 0.8427
+[03:11:39]   outer fold 22: 0.7921
+[03:15:27]   outer fold 23: 0.8371
+[03:20:15]   outer fold 24: 0.8146
+[03:20:15] NESTED CV TIGHT: 0.8373 (+/- 0.0043 SEM, 25 folds)
+DONE_NESTED_TIGHT

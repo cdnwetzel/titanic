@@ -1,0 +1,10 @@
+[00:56:25] champion: 0.8370 (50 folds)
+[01:02:35] et_member: 0.8361 diff=-0.0009 p=0.2310 -> reject
+[01:07:08] knn_member: 0.8358 diff=-0.0012 p=0.0474 -> reject
+[01:19:58] calibrated_members: 0.8347 diff=-0.0024 p=0.0794 -> reject
+[01:24:34] meta_elasticnet: 0.8371 diff=+0.0001 p=0.8831 -> reject
+[01:29:20] ageband_feature: 0.8323 diff=-0.0047 p=0.0007 -> reject
+[01:34:00] logfare_feature: 0.8355 diff=-0.0016 p=0.0215 -> reject
+[01:38:52] vote_stack_cat_11: 0.8383 diff=+0.0012 p=0.5348 -> reject
+[01:43:44] vote_stack_cat_21: 0.8370 diff=-0.0000 p=0.9976 -> reject
+DONE_LEVERS

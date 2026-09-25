@@ -13,8 +13,9 @@ decision log.
 
 **Final model:** stacking ensemble (random forest + gradient boosting +
 logistic regression, logistic meta learner). 50 fold CV **0.8370 +/- 0.0036**;
-nested CV with the hyperparameter search inside the validation loop
-**0.8406 +/- 0.0073**.
+nested CV with the hyperparameter search inside the validation loop,
+tightened to 25 outer folds by 50 inner trials, **0.8373 +/- 0.0043** (the
+sharp honest estimate).
 
 ## Results at a glance
 
@@ -26,9 +27,11 @@ nested CV with the hyperparameter search inside the validation loop
 | Task 4 | Soft vote RF+HGB+LR | 0.8314 | 0.76076 |
 | Task 5 | **Stacking (LR meta learner)** | **0.8365** | 0.75837 (task 7 line) |
 | Task 7 | Optuna tuned HGB/RF members | 0.8370 | 0.75837 |
-| Task 14 | Nested CV estimate of final pipeline | 0.8406 +/- 0.0073 | 0.75837 |
+| Task 14 | Nested CV estimate of final pipeline | 0.8373 +/- 0.0043 (tight) | 0.75837 |
+| Tasks 6, 8 to 13 | Six more serious attempts | all rejected | 0.75837 |
+| Future levers | Eight more honest attempts | all rejected | 0.75837 |
 
-CV arc: **0.8134 to 0.8370 (+2.4%)**, honest nested estimate 0.8406.
+CV arc: **0.8134 to 0.8370 (+2.4%)**, honest nested estimate 0.8373.
 Public LB across all five submissions: 0.746 to 0.766, a flat noise band.
 That contrast is the central finding of the project and the reason the
 documents below exist.
@@ -130,7 +133,8 @@ speedup.
 battery was run on a second workstation (Ryzen 9 5950X, Zen 3, 2020).
 Against the Xeon rerun, every matched event reproduced with **max delta
 0.0000**, including the champion anchor 0.8370378507312786 bit-identical
-and nested CV 0.8406 +/- 0.0073 fold-for-fold. The Ryzen finished about
+and nested CV 0.8406 +/- 0.0073 fold-for-fold (tightened to 0.8373 +/-
+0.0043 in a later 25-fold run). The Ryzen finished about
 3x faster per evaluation. Full spec table, timing breakdown, and analysis:
 `docs/HARDWARE_COMPARISON.md`. Raw evidence: `results/asrock/`,
 `results/benchmark_*.json`, `results/env_*.json`, `results/lscpu_*.txt`.
@@ -154,12 +158,17 @@ and nested CV 0.8406 +/- 0.0073 fold-for-fold. The Ryzen finished about
    models, and nothing significant in the ensemble (p = 0.74).
 5. Seed averaging, ticket groups, iterative imputation, fare hygiene: all
    rejected by the gates. Famous tricks mostly duplicate existing signal.
-6. The public leaderboard scored five models spanning CV 0.8134 to 0.8406
+6. The public leaderboard scored models spanning CV 0.8134 to 0.8406
    inside one 0.746 to 0.766 band. Model selection against it is fitting to
    noise.
 7. The top of the Titanic leaderboard (73 teams at 1.00000) is overfit or
    junk. The legitimate ceiling is about 0.84. The nested estimate says this
    pipeline is essentially there.
+8. The champion survived more than twenty paired gates, including eight
+   honest later levers (ExtraTrees, KNN, calibration, ElasticNet meta,
+   age bands, log fare, two CatBoost votes). Every lever with a real
+   mechanism was tested; none cleared the bar. At that point the honest
+   conclusion is that the model is done, not that the search is.
 
 ## Engineering note
 
